@@ -1,0 +1,24 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}تعديل الكود - {{ code.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-white">تعديل الكود: {{ code.title }}</h2>
+    <div class="card glass-card p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-white">عنوان الكود:</label>
+                <input type="text" name="code_title" class="form-control" value="{{ code.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">الكود:</label>
+                <textarea name="code_content" class="form-control" rows="6" required>{{ code.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+            <a href="{% url 'content' %}" class="btn btn-secondary">رجوع</a>
+        </form>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,2633 @@
+settings.py 
+
+
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = 'your-secret-key'  # غيرها لشيء آمن
+
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'tracker',
+    'django.contrib.humanize',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'study_app.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'study_app.context_processors.global_months',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'study_app.wsgi.application'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+LANGUAGE_CODE = 'ar'
+
+TIME_ZONE = 'Africa/Cairo'
+
+USE_I18N = True
+
+USE_TZ = True
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+views.py 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Sum, F, Q
+from django.db.models import ExpressionWrapper, FloatField
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .models import Month, Week, Day, Code, Image, Note, EnglishNote
+from datetime import date, datetime
+
+def home(request):
+    months = Month.objects.all()
+    return render(request, 'tracker/home.html', {'months': months})
+
+def month_detail(request, month_id):
+    month = get_object_or_404(Month, id=month_id)
+    weeks = month.week_set.all()
+    return render(request, 'tracker/month_detail.html', {'month': month, 'weeks': weeks})
+
+def week_detail(request, week_id):
+    week = get_object_or_404(Week, id=week_id)
+    days = week.day_set.all().order_by('date')
+    if request.method == 'POST':
+        new_date = request.POST.get('new_date')
+        if new_date:
+            new_day = Day.objects.create(week=week, date=datetime.strptime(new_date, '%Y-%m-%d').date())
+            return redirect('week_detail', week_id=week.id)
+    return render(request, 'tracker/week_detail.html', {'week': week, 'days': days})
+
+def day_detail(request, day_id=None):
+    if day_id:
+        day = get_object_or_404(Day, id=day_id)
+    else:
+        search_date = request.GET.get('date')
+        if search_date:
+            day = get_object_or_404(Day, date=search_date)
+            return redirect('day_detail', day_id=day.id)
+        day = Day.objects.first()
+    cyber_options = range(8)
+    english_options = range(4)
+    if request.method == 'POST':
+        if 'delete_code' in request.POST:
+            code = get_object_or_404(Code, id=request.POST.get('delete_code'), day=day)
+            code.delete()
+        elif 'delete_image' in request.POST:
+            image = get_object_or_404(Image, id=request.POST.get('delete_image'), day=day)
+            image.delete()
+        elif 'delete_note' in request.POST:
+            note = get_object_or_404(Note, id=request.POST.get('delete_note'), day=day)
+            note.delete()
+        elif 'delete_english_note' in request.POST:
+            english_note = get_object_or_404(EnglishNote, id=request.POST.get('delete_english_note'), day=day)
+            english_note.delete()
+        else:
+            day.cyber_hours = float(request.POST.get('cyber_hours', 0))
+            day.english_hours = float(request.POST.get('english_hours', 0))
+            day.save()
+            if 'code_title' in request.POST and request.POST['code_title']:
+                Code.objects.create(day=day, title=request.POST['code_title'], content=request.POST['code_content'])
+            if 'image_title' in request.POST and request.FILES.get('image_file'):
+                Image.objects.create(day=day, title=request.POST['image_title'], file=request.FILES['image_file'])
+            if 'note_title' in request.POST and request.POST['note_title']:
+                Note.objects.create(day=day, title=request.POST['note_title'], content=request.POST['note_content'])
+            if 'english_title' in request.POST and request.POST['english_title']:
+                EnglishNote.objects.create(day=day, title=request.POST['english_title'], content=request.POST['english_content'])
+        day.calculate_star()
+        week = day.week
+        week.stars = week.day_set.filter(star=True).count() * 3
+        week.save()
+        month = week.month
+        month.stars = month.week_set.aggregate(total=Sum('stars'))['total'] or 0
+        month.save()
+        return redirect('day_detail', day_id=day.id)
+    return render(request, 'tracker/day_detail.html', {'day': day, 'cyber_options': cyber_options, 'english_options': english_options})
+
+@csrf_exempt
+def add_study_day(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            study_date = data.get('study_date')
+            cyber_hours = float(data.get('cyber_hours', 0))
+            english_hours = float(data.get('english_hours', 0))
+            
+            study_date_obj = datetime.strptime(study_date, '%Y-%m-%d').date()
+            month = Month.objects.filter(number=study_date_obj.month, year=study_date_obj.year).first()
+            if not month:
+                return JsonResponse({'success': False, 'error': 'لم يتم العثور على شهر مطابق'}, status=400)
+            week_number = (study_date_obj.day - 1) // 7 + 1
+            week = Week.objects.filter(month=month, number=week_number).first()
+            if not week:
+                return JsonResponse({'success': False, 'error': 'لم يتم العثور على أسبوع مطابق'}, status=400)
+            
+            day, created = Day.objects.get_or_create(
+                date=study_date_obj,
+                week=week,
+                defaults={'cyber_hours': cyber_hours, 'english_hours': english_hours}
+            )
+            if not created:
+                day.cyber_hours = cyber_hours
+                day.english_hours = english_hours
+                day.save()
+            
+            day.calculate_star()
+            week.stars = week.day_set.filter(star=True).count() * 3
+            week.save()
+            month.stars = month.week_set.aggregate(total=Sum('stars'))['total'] or 0
+            month.save()
+            
+            return JsonResponse({
+                'success': True,
+                'day_id': day.id,
+                'total_hours': cyber_hours + english_hours,
+                'stars': 3 if day.star else 0,
+                'event': {
+                    'title': f'ساعات: {cyber_hours + english_hours:.1f} | {"⭐" if day.star else "❌"}',
+                    'start': study_date,
+                    'url': f'/day/{day.id}/',
+                    'backgroundColor': '#28a745' if day.star else '#dc3545'
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'الطريقة غير صالحة'}, status=405)
+
+def stats(request):
+    total_hours_agg = Day.objects.aggregate(cyber=Sum('cyber_hours'), english=Sum('english_hours'))
+    studied_hours = (total_hours_agg['cyber'] or 0) + (total_hours_agg['english'] or 0)
+    total_stars = Day.objects.filter(star=True).count() * 3  # 3 نجوم لكل يوم ناجح
+    studied_days_count = Day.objects.filter(cyber_hours__gt=0).count()  # عدد الأيام المدروسة
+    search_query = request.GET.get('search', '')
+    items = []
+    if search_query:
+        codes = Code.objects.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+        images = Image.objects.filter(title__icontains=search_query)
+        notes = Note.objects.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+        english_notes = EnglishNote.objects.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+        items = list(codes) + list(images) + list(notes) + list(english_notes)
+        for item in items:
+            item.item_type = 'كود' if isinstance(item, Code) else 'صورة' if isinstance(item, Image) else 'مذكرة' if isinstance(item, Note) else 'ملاحظة إنجليزية'
+    
+    # بيانات للرسم البياني
+    months = Month.objects.all()
+    monthly_data = []
+    for month in months:
+        month_cyber = Day.objects.filter(week__month=month).aggregate(total=Sum('cyber_hours'))['total'] or 0
+        month_english = Day.objects.filter(week__month=month).aggregate(total=Sum('english_hours'))['total'] or 0
+        month_stars = month.stars or 0  # عدد النجوم (3 لكل يوم ناجح)
+        month_days = Day.objects.filter(week__month=month, cyber_hours__gt=0).count()  # عدد الأيام المدروسة
+        monthly_data.append({
+            'name': month.name,
+            'cyber_hours': month_cyber,
+            'english_hours': month_english,
+            'stars': month_stars,
+            'days': month_days
+        })
+    
+    # الأيام الضعيفة (أقل من 3 ساعات)
+    weak_days = Day.objects.annotate(
+        total_hours=ExpressionWrapper(F('cyber_hours') + F('english_hours'), output_field=FloatField())
+    ).filter(total_hours__lt=3, cyber_hours__gt=0).order_by('-date')
+    
+    start_date = datetime(2025, 10, 1).date()
+    end_date = datetime(2026, 10, 1).date()
+    today = date.today()
+    total_days = (end_date - start_date).days
+    days_passed = max(0, (today - start_date).days)
+    time_progress = (days_passed / total_days) * 100 if total_days > 0 else 0
+    total_possible_hours = 1560
+    total_possible_stars = 468
+    total_possible_days = total_days
+    remaining_hours = total_possible_hours - studied_hours
+    remaining_stars = total_possible_stars - total_stars
+    remaining_days = total_possible_days - studied_days_count
+    hours_progress = min(100, (studied_hours / total_possible_hours) * 100)
+    stars_progress = min(100, (total_stars / total_possible_stars) * 100)
+    days_progress = min(100, (studied_days_count / total_possible_days) * 100)
+    
+    # تنبيه إذا كان التقدم أقل من 50%
+    alert_message = "تقدمك أقل من 50%! حاول تزود مجهودك 🚀" if hours_progress < 50 else None
+    
+    return render(request, 'tracker/stats.html', {
+        'studied_hours': studied_hours,
+        'total_stars': total_stars,
+        'studied_days_count': studied_days_count,  # إضافة عدد الأيام
+        'items': items,
+        'search_query': search_query,
+        'time_progress': time_progress,
+        'hours_progress': hours_progress,
+        'stars_progress': stars_progress,
+        'days_progress': days_progress,  # إضافة تقدم الأيام
+        'days_passed': days_passed,
+        'total_possible_hours': total_possible_hours,
+        'total_possible_stars': total_possible_stars,
+        'total_possible_days': total_possible_days,
+        'remaining_hours': remaining_hours,
+        'remaining_stars': remaining_stars,
+        'remaining_days': remaining_days,
+        'monthly_data': monthly_data,
+        'weak_days': weak_days,
+        'alert_message': alert_message,
+    })
+
+def content(request):
+    studied_days = Day.objects.filter(cyber_hours__gt=0).select_related('week__month').order_by('-date')
+    codes = Code.objects.all().select_related('day')
+    images = Image.objects.all().select_related('day')
+    notes = Note.objects.all().select_related('day')
+    english_notes = EnglishNote.objects.all().select_related('day')
+    search_query = request.GET.get('search', '')
+    type_filter = request.GET.get('type', '')
+    search_results = []
+    if search_query:
+        days = Day.objects.filter(date__icontains=search_query, cyber_hours__gt=0)
+        codes = Code.objects.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+        images = Image.objects.filter(title__icontains=search_query)
+        notes = Note.objects.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+        english_notes = EnglishNote.objects.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+        
+        if type_filter == 'day':
+            search_results = list(days)
+        elif type_filter == 'code':
+            search_results = list(codes)
+        elif type_filter == 'image':
+            search_results = list(images)
+        elif type_filter == 'note':
+            search_results = list(notes)
+        elif type_filter == 'english_note':
+            search_results = list(english_notes)
+        else:
+            search_results = list(days) + list(codes) + list(images) + list(notes) + list(english_notes)
+        
+        for item in search_results:
+            item.item_type = (
+                'يوم' if isinstance(item, Day) else
+                'كود' if isinstance(item, Code) else
+                'صورة' if isinstance(item, Image) else
+                'مذكرة' if isinstance(item, Note) else
+                'ملاحظة إنجليزية'
+            )
+            item.content = (
+                f'ساعات: {item.cyber_hours + item.english_hours:.1f}' if isinstance(item, Day) else
+                item.content if hasattr(item, 'content') else
+                item.file.url if isinstance(item, Image) else ''
+            )
+            item.title = (
+                item.date.strftime('%d/%m/%Y') if isinstance(item, Day) else
+                item.title
+            )
+    
+    if request.method == 'POST':
+        if 'delete_code' in request.POST:
+            code = get_object_or_404(Code, id=request.POST.get('delete_code'))
+            code.delete()
+        elif 'delete_image' in request.POST:
+            image = get_object_or_404(Image, id=request.POST.get('delete_image'))
+            image.delete()
+        elif 'delete_note' in request.POST:
+            note = get_object_or_404(Note, id=request.POST.get('delete_note'))
+            note.delete()
+        elif 'delete_english_note' in request.POST:
+            english_note = get_object_or_404(EnglishNote, id=request.POST.get('delete_english_note'))
+            english_note.delete()
+        return redirect('content')
+    
+    return render(request, 'tracker/content.html', {
+        'studied_days': studied_days,
+        'codes': codes[:6],
+        'more_codes': codes[6:],
+        'images': images[:6],
+        'more_images': images[6:],
+        'notes': notes[:6],
+        'more_notes': notes[6:],
+        'english_notes': english_notes[:6],
+        'more_english_notes': english_notes[6:],
+        'search_query': search_query,
+        'search_results': search_results,
+        'type_filter': type_filter,
+    })
+
+def edit_code(request, code_id):
+    code = get_object_or_404(Code, id=code_id)
+    if request.method == 'POST':
+        code.title = request.POST.get('code_title')
+        code.content = request.POST.get('code_content')
+        code.save()
+        return redirect('content')
+    return render(request, 'tracker/edit_code.html', {'code': code})
+
+def edit_image(request, image_id):
+    image = get_object_or_404(Image, id=image_id)
+    if request.method == 'POST':
+        image.title = request.POST.get('image_title')
+        if request.FILES.get('image_file'):
+            image.file = request.FILES['image_file']
+        image.save()
+        return redirect('content')
+    return render(request, 'tracker/edit_image.html', {'image': image})
+
+def edit_note(request, note_id):
+    note = get_object_or_404(Note, id=note_id)
+    if request.method == 'POST':
+        note.title = request.POST.get('note_title')
+        note.content = request.POST.get('note_content')
+        note.save()
+        return redirect('content')
+    return render(request, 'tracker/edit_note.html', {'note': note})
+
+def edit_english_note(request, english_note_id):
+    english_note = get_object_or_404(EnglishNote, id=english_note_id)
+    if request.method == 'POST':
+        english_note.title = request.POST.get('english_title')
+        english_note.content = request.POST.get('english_content')
+        english_note.save()
+        return redirect('content')
+    return render(request, 'tracker/edit_english_note.html', {'english_note': english_note})
+
+@csrf_exempt
+def delete_item(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            item_type = data.get('item_type')
+            item_id = data.get('item_id')
+            if item_type == 'code':
+                item = get_object_or_404(Code, id=item_id)
+            elif item_type == 'image':
+                item = get_object_or_404(Image, id=item_id)
+            elif item_type == 'note':
+                item = get_object_or_404(Note, id=item_id)
+            elif item_type == 'english_note':
+                item = get_object_or_404(EnglishNote, id=item_id)
+            else:
+                return JsonResponse({'success': False, 'error': 'نوع غير صالح'})
+            item.delete()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'الطريقة غير صالحة'}, status=405)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+urls.py from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('month/<int:month_id>/', views.month_detail, name='month_detail'),
+    path('week/<int:week_id>/', views.week_detail, name='week_detail'),
+    path('day/<int:day_id>/', views.day_detail, name='day_detail'),
+    path('day/', views.day_detail, name='day_detail'),
+    path('stats/', views.stats, name='stats'),
+    path('content/', views.content, name='content'),
+    path('edit/code/<int:code_id>/', views.edit_code, name='edit_code'),
+    path('edit/image/<int:image_id>/', views.edit_image, name='edit_image'),
+    path('edit/note/<int:note_id>/', views.edit_note, name='edit_note'),
+    path('edit/english_note/<int:english_note_id>/', views.edit_english_note, name='edit_english_note'),
+    path('api/add-study-day/', views.add_study_day, name='add_study_day'),
+    path('api/delete-item/', views.delete_item, name='delete_item'),
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+populate.py 
+
+import os
+import sys
+from pathlib import Path
+
+project_root = Path(__file__).resolve().parent.parent
+sys.path.append(str(project_root))
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'study_app.settings')
+import django
+django.setup()
+from tracker.models import Month, Week, Day
+from datetime import datetime, timedelta
+
+# مسح البيانات
+Day.objects.all().delete()
+Week.objects.all().delete()
+Month.objects.all().delete()
+
+# الأشهر
+months_data = [
+    {"name": "أكتوبر 2025", "year": 2025, "number": 10},
+    {"name": "نوفمبر 2025", "year": 2025, "number": 11},
+    {"name": "ديسمبر 2025", "year": 2025, "number": 12},
+    {"name": "يناير 2026", "year": 2026, "number": 1},
+    {"name": "فبراير 2026", "year": 2026, "number": 2},
+    {"name": "مارس 2026", "year": 2026, "number": 3},
+    {"name": "أبريل 2026", "year": 2026, "number": 4},
+    {"name": "مايو 2026", "year": 2026, "number": 5},
+    {"name": "يونيو 2026", "year": 2026, "number": 6},
+    {"name": "يوليو 2026", "year": 2026, "number": 7},
+    {"name": "أغسطس 2026", "year": 2026, "number": 8},
+    {"name": "سبتمبر 2026", "year": 2026, "number": 9},
+    {"name": "أكتوبر 2026", "year": 2026, "number": 10},
+]
+
+for data in months_data:
+    Month.objects.create(**data)
+
+print("تم إضافة 13 شهر.")
+
+# الأسابيع (4/شهر)
+for month in Month.objects.all():
+    for num in range(1, 5):
+        Week.objects.create(month=month, number=num)
+
+print("تم إضافة الأسابيع.")
+
+# الأيام (7 أيام كاملة/أسبوع، من 1/10/2025)
+start_date = datetime(2025, 10, 1).date()
+week_counter = 0
+for month in Month.objects.all():
+    for week in month.week_set.all():
+        for day_offset in range(7):  # 7 أيام
+            day_date = start_date + timedelta(days=week_counter * 7 + day_offset)
+            Day.objects.get_or_create(week=week, date=day_date)  # get_or_create للمرونة
+        week_counter += 1
+
+print(f"تم إضافة {Day.objects.count()} يوم (7/أسبوع). أول يوم: {Day.objects.first().date}.")
+print("جاهز!") models.py from django.db import models
+from django.utils import timezone
+
+class Month(models.Model):
+    number = models.IntegerField()
+    year = models.IntegerField(default=2025)
+    name = models.CharField(max_length=50)
+    stars = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+class Week(models.Model):
+    month = models.ForeignKey(Month, on_delete=models.CASCADE)
+    number = models.IntegerField()
+    stars = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"أسبوع {self.number} في {self.month}"
+
+class Day(models.Model):
+    week = models.ForeignKey(Week, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)
+    cyber_hours = models.FloatField(default=0)
+    english_hours = models.FloatField(default=0)
+    star = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.date)
+
+    def calculate_star(self):
+        has_code = self.codes.exists()
+        has_image = self.images.exists()
+        has_note = self.notes.exists()
+        has_english_note = self.english_notes.exists()
+        total_hours = self.cyber_hours + self.english_hours
+        self.star = has_code and has_image and has_note and has_english_note and total_hours >= 10
+        self.save()
+
+class Code(models.Model):
+    day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='codes')
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+
+    def __str__(self):
+        return self.title
+
+class Image(models.Model):
+    day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='images')
+    title = models.CharField(max_length=100)
+    file = models.ImageField(upload_to='images/')
+
+    def __str__(self):
+        return self.title
+
+class Note(models.Model):
+    day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='notes')
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+
+    def __str__(self):
+        return self.title
+
+class EnglishNote(models.Model):
+    day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='english_notes')
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+
+    def __str__(self):
+        return self.title  
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        week_detail.html 
+
+{% extends 'tracker/base.html' %}
+
+{% load humanize %}
+
+{% block content %}
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+.star {
+    animation: pulse 1s infinite;
+}
+</style>
+
+<h2 class="text-center mb-4 text-info fw-bold">📆 أسبوع {{ week.number }} - {{ week.month.name }} ({{ week.stars|floatformat:0 }} نجمة)</h2>
+<div class="row justify-content-center g-3">
+    {% for day in days %}
+    <div class="col-md-2 col-sm-3">
+        <div class="card p-3 text-center h-100 {% if day.cyber_hours|add:day.english_hours > 0 %}border-primary shadow-lg{% endif %}">
+            <h6 class="fw-bold text-primary">{{ day.date|date:"d/m (E)" }}</h6>
+            <p class="mb-2 small">سايبر: {{ day.cyber_hours|floatformat:1 }}س</p>
+            <p class="mb-2 small">إنجليزي: {{ day.english_hours|floatformat:1 }}س</p>
+            <p class="mb-2 small font-weight-bold">إجمالي: {{ day.cyber_hours|add:day.english_hours|floatformat:1 }}س</p>
+            {% if day.star %}
+            <span class="star text-warning" style="font-size: 1.5em;">★★★</span>
+            {% endif %}
+            <a href="{% url 'day_detail' day.id %}" class="btn btn-custom btn-sm mt-2">تعديل اليوم</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p class="text-muted fs-5">لا أيام مضافة لهذا الأسبوع. أضف يومًا!</p>
+    </div>
+    {% endfor %}
+</div>
+<form method="POST" class="mt-4 text-center">
+    {% csrf_token %}
+    <div class="input-group w-50 mx-auto">
+        <input type="date" name="new_date" class="form-control" min="2025-10-01" max="2026-10-01">
+        <button type="submit" class="btn btn-success">+ أضف يوم مرن</button>
+    </div>
+</form>
+<a href="{% url 'month_detail' week.month.id %}" class="btn btn-secondary mt-3">← رجوع للشهر</a>
+{% endblock %} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+stats.html 
+
+{% extends 'tracker/base.html' %}
+
+{% block title %}لوحة الإحصائيات - أكاديمية الشروق{% endblock %}
+
+{% block content %}
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b7280);
+    font-family: 'Tajawal', sans-serif;
+}
+.chart-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+</style>
+
+<div class="container-fluid py-5">
+    <h1 class="text-center mb-5 text-white fw-bold">📊 لوحة الإحصائيات السنوية</h1>
+
+    <!-- تنبيه إذا كان التقدم ضعيف -->
+    {% if alert_message %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ alert_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- رسم بياني -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📈 تقدم الساعات، النجوم، والأيام حسب الشهر</h3>
+        <div class="chart-container">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+
+    <!-- السيرش -->
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card glass-card p-4">
+                <h3 class="text-center mb-4 text-white"><i class="fas fa-search"></i> بحث في المحتوى</h3>
+                <form method="GET" class="d-flex">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" class="form-control me-2" placeholder="ابحث في الأكواد، الصور، المذكرات..." required>
+                    <select name="type" class="form-select me-2" style="width: auto;">
+                        <option value="">الكل</option>
+                        <option value="day" {% if type_filter == 'day' %}selected{% endif %}>يوم</option>
+                        <option value="code" {% if type_filter == 'code' %}selected{% endif %}>كود</option>
+                        <option value="image" {% if type_filter == 'image' %}selected{% endif %}>صورة</option>
+                        <option value="note" {% if type_filter == 'note' %}selected{% endif %}>مذكرة</option>
+                        <option value="english_note" {% if type_filter == 'english_note' %}selected{% endif %}>ملاحظة إنجليزية</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                </form>
+                {% if items %}
+                <div class="row mt-4 g-3">
+                    {% for item in items %}
+                    <div class="col-md-4">
+                        <div class="card glass-card p-3">
+                            <h6 class="text-white">{{ item.title }}</h6>
+                            <p class="text-white small">نوع: {{ item.item_type }} | {{ item.day.date|date:"d/m/Y" }}</p>
+                            {% if item.item_type == 'صورة' %}
+                            <img src="{{ item.file.url }}" class="img-fluid mb-2" style="max-height: 150px; cursor: pointer;" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">
+                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                            {% else %}
+                            <p class="text-white">{{ item.content|truncatewords:10 }}</p>
+                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.content|escapejs }}', '{{ item.title|escapejs }}', '{{ item.item_type|lower }}')">عرض التفاصيل</button>
+                            {% endif %}
+                            <a href="{% url 'day_detail' item.day.id %}" class="btn btn-secondary btn-sm mt-2">تفاصيل اليوم</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-white mt-4">لا توجد نتائج</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- الأيام الضعيفة -->
+    {% if weak_days %}
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">⚠️ الأيام بأقل من 3 ساعات</h3>
+        <div class="row g-3">
+            {% for day in weak_days %}
+            <div class="col-md-3">
+                <div class="card glass-card p-3 text-center">
+                    <h6 class="text-white">{{ day.date|date:"d/m/Y" }}</h6>
+                    <p class="text-white small">إجمالي: {{ day.total_hours|floatformat:1 }} ساعة</p>
+                    <a href="{% url 'day_detail' day.id %}" class="btn btn-warning btn-sm">تفاصيل</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- كروت الإحصائيات -->
+    <div class="row mb-5 g-4">
+        <div class="col-md-4">
+            <div class="card glass-card p-4 text-center">
+                <i class="fas fa-clock fa-3x mb-3 text-primary"></i>
+                <h3 class="text-white">ساعات الدراسة</h3>
+                <h2 class="text-white fw-bold">{{ studied_hours|floatformat:1 }}</h2>
+                <p class="text-white">من {{ total_possible_hours }} ساعة</p>
+                <div class="progress">
+                    <div class="progress-bar bg-primary" style="width: {{ hours_progress }}%;">
+                        {{ hours_progress|floatformat:1 }}%
+                    </div>
+                </div>
+                <small class="text-white mt-2">متبقي: {{ remaining_hours|floatformat:0 }} ساعة</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card glass-card p-4 text-center">
+                <i class="fas fa-star fa-3x mb-3 text-warning"></i>
+                <h3 class="text-white">النجوم</h3>
+                <h2 class="text-white fw-bold">{{ total_stars }}</h2>
+                <p class="text-white">من {{ total_possible_stars }} نجمة</p>
+                <div class="progress">
+                    <div class="progress-bar bg-warning" style="width: {{ stars_progress }}%;">
+                        {{ stars_progress|floatformat:1 }}%
+                    </div>
+                </div>
+                <small class="text-white mt-2">متبقي: {{ remaining_stars }} نجمة</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card glass-card p-4 text-center">
+                <i class="fas fa-calendar fa-3x mb-3 text-info"></i>
+                <h3 class="text-white">الأيام المدروسة</h3>
+                <h2 class="text-white fw-bold">{{ studied_days_count }}</h2>
+                <p class="text-white">من {{ total_possible_days }} يوم</p>
+                <div class="progress">
+                    <div class="progress-bar bg-info" style="width: {{ days_progress }}%;">
+                        {{ days_progress|floatformat:1 }}%
+                    </div>
+                </div>
+                <small class="text-white mt-2">متبقي: {{ remaining_days }} يوم</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal لعرض التفاصيل -->
+    <div class="modal fade" id="contentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // عرض التفاصيل في Modal
+    window.openModal = function(content, title, type) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        modalTitle.textContent = title;
+        if (type === 'image') {
+            modalContent.innerHTML = `<img src="${content}" class="img-fluid" style="max-width: 100%;">`;
+        } else {
+            const escapedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            modalContent.innerHTML = `<pre><code class="language-${type === 'كود' ? 'python' : 'markup'}">${escapedContent}</code></pre>`;
+            Prism.highlightAll();
+        }
+        new bootstrap.Modal(document.getElementById('contentModal')).show();
+    };
+
+    // الرسم البياني
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for month in monthly_data %}'{{ month.name }}',{% endfor %}],
+            datasets: [
+                {
+                    label: 'ساعات السايبر',
+                    data: [{% for month in monthly_data %}{{ month.cyber_hours }},{% endfor %}],
+                    backgroundColor: '#4f46e5',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1
+                },
+                {
+                    label: 'ساعات الإنجليزي',
+                    data: [{% for month in monthly_data %}{{ month.english_hours }},{% endfor %}],
+                    backgroundColor: '#10b981',
+                    borderColor: '#059669',
+                    borderWidth: 1
+                },
+                {
+                    label: 'النجوم',
+                    data: [{% for month in monthly_data %}{{ month.stars }},{% endfor %}],
+                    type: 'line',
+                    borderColor: '#f59e0b',
+                    borderWidth: 2,
+                    fill: false,
+                    yAxisID: 'y-stars'
+                },
+                {
+                    label: 'الأيام المدروسة',
+                    data: [{% for month in monthly_data %}{{ month.days }},{% endfor %}],
+                    type: 'line',
+                    borderColor: '#ec4899',
+                    borderWidth: 2,
+                    fill: false,
+                    yAxisID: 'y-days'
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'عدد الساعات'
+                    }
+                },
+                'y-stars': {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'عدد النجوم'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                'y-days': {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'عدد الأيام'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'الأشهر'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'تقدم ساعات الدراسة، النجوم، والأيام حسب الشهر'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}  
+
+
+
+
+
+
+
+
+month_detail.html 
+
+{% extends 'tracker/base.html' %}
+{% block content %}
+<h2 class="text-center mb-4 text-primary">📅 {{ month.name }} ({{ month.stars }} نجمة إجمالي)</h2>
+<div class="row justify-content-center">
+    {% for week in weeks %}
+    <div class="col-md-3 mb-4">
+        <div class="card p-3 text-center {% if week.stars > 0 %}border-warning{% endif %}">
+            <h5 class="card-title">أسبوع {{ week.number }} ({{ week.stars }} نجمة)</h5>
+            <a href="{% url 'week_detail' week.id %}" class="btn btn-custom">عرض الأسبوع</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+home.html 
+{% extends 'tracker/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1 data-ar="أكاديمية الشروق" data-en="Shorouk Academy"><i class="fas fa-shield-alt me-2"></i>Shorouk Academy</h1>
+        <h2 data-ar="جلسةنا الأخيرة - خارطة طريق الأمن السيبراني" data-en="Our Last Session - Cybersecurity Roadmap">Our Last Session - Cybersecurity Roadmap</h2>
+    </div>
+</section>
+
+<!-- Agenda Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="الأجندة" data-en="Agenda" class="mb-0"><i class="fas fa-list-ul me-2"></i>الأجندة</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <ul class="list-unstyled fs-5">
+                            <li class="mb-3" data-ar="مراجعة ما تعلمناه!" data-en="Flashback what we have learned!"><i class="fas fa-history text-warning me-2"></i>Flashback what we have learned!</li>
+                            <li class="mb-3" data-ar="بعد هذا الكورس، ما هي الخطوات التالية؟" data-en="After this course, what are the next steps?"><i class="fas fa-forward text-info me-2"></i>After this course, what are the next steps?</li>
+                            <li class="mb-3" data-ar="هل الشهادات مهمة؟" data-en="Are certificates important?"><i class="fas fa-certificate text-success me-2"></i>Are certificates important?</li>
+                            <li class="mb-3" data-ar="كيفية التحضير لمقابلة تدريب؟" data-en="How to prepare for an internship interview?"><i class="fas fa-microphone text-danger me-2"></i>How to prepare for an internship interview?</li>
+                            <li class="mb-3" data-ar="شركات الأمن السيبراني في مصر؟" data-en="Cybersecurity companies in Egypt?"><i class="fas fa-building text-primary me-2"></i>Cybersecurity companies in Egypt?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Flashback Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="مراجعة ما تعلمناه" data-en="Flashback — What we learned" class="mb-0 text-success"><i class="fas fa-history me-2"></i> Flashback — What we learned</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="أساسيات الأمن السيبراني" data-en="Cyber Security Basics" class="text-primary"><i class="fas fa-shield-alt me-2"></i> Cyber Security Basics</h5>
+                            <p data-ar="إعداد المعامل، فهم المصطلحات الأساسية، ومقدمة في اختبار الاختراق، الفريق الأحمر والأزرق." data-en="Set up labs, understood basic terms, and got introduced to Penetration Testing, Red Teaming, and Blue Teaming.">Set up labs, understood basic terms, and got introduced to Penetration Testing, Red Teaming, and Blue Teaming. <a href="https://www.youtube.com/watch?v=i8rizLc4hc0" class="text-decoration-none" target="_blank">Watch</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="أساسيات لينكس" data-en="Linux Fundamentals" class="text-primary"><i class="fab fa-linux me-2"></i> Linux Fundamentals</h5>
+                            <p data-ar="استكشاف internals لينكس، التنقل، الصلاحيات، إدارة البرمجيات، إدارة العمليات، وأدوات الشل." data-en="Explored Linux internals, system navigation, user permissions, software management, process management, and shell utilities.">Explored Linux internals, system navigation, user permissions, software management, process management, and shell utilities. <a href="https://tryhackme.com/room/linuxfundamentalspart1" class="text-decoration-none" target="_blank">Resources [1-13]</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="أساسيات الشبكات" data-en="Network Fundamentals" class="text-primary"><i class="fas fa-network-wired me-2"></i> Network Fundamentals</h5>
+                            <p data-ar="تعلم عن عمليات الشبكة، الأجهزة، النماذج (TCP/IP، OSI)، الطوبولوجيا، عناوين IP وMAC، البروتوكولات، وأدوات أساسية مثل Wireshark." data-en="Learned about network operations, devices, models (TCP/IP, OSI), topologies, IP and MAC addresses, protocols, and essential tools like Wireshark.">Learned about network operations, devices, models (TCP/IP, OSI), topologies, IP and MAC addresses, protocols, and essential tools like Wireshark. <a href="https://tryhackme.com/room/introtonetworking" class="text-decoration-none" target="_blank">Resources [22-29]</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="اختبار الاختراق" data-en="Penetration Testing" class="text-primary"><i class="fas fa-hacker me-2"></i> Penetration Testing</h5>
+                            <p data-ar="ممارسة الاستطلاع، المسح، الاستغلال، ما بعد الاستغلال، والمشاركة في تحديات Capture-the-Flag." data-en="Practiced reconnaissance, scanning, exploitation, post-exploitation, and participated in Capture-the-Flag challenges.">Practiced reconnaissance, scanning, exploitation, post-exploitation, and participated in Capture-the-Flag challenges. <a href="https://netriders.academy/courses/penetration-testing-student/" class="text-decoration-none" target="_blank">Course</a></p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="الفريق الأزرق" data-en="Blue Teaming" class="text-primary"><i class="fas fa-shield-alt me-2"></i> Blue Teaming</h5>
+                            <p data-ar="إجراء تحليل البريد الإلكتروني والبرمجيات الضارة، ودراسة أساسيات الطب الشرعي الرقمي." data-en="Conducted email and malware analysis, and studied the basics of digital forensics.">Conducted email and malware analysis, and studied the basics of digital forensics.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Programming Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="البرمجة وأساسيات الويب" data-en="Programming & Web basics" class="mb-0 text-info"><i class="fas fa-code me-2"></i> Programming & Web basics</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="slide-card p-3 text-center">
+                            <h5 data-ar="الواجهة الأمامية" data-en="FrontEnd" class="text-warning"><i class="fas fa-laptop-code me-2"></i> FrontEnd</h5>
+                            <div class="d-flex justify-content-center gap-3 mb-3">
+                                <div><i class="fab fa-html5 fa-3x text-danger"></i><p data-ar="HTML" data-en="HTML">HTML</p></div>
+                                <div><i class="fab fa-css3-alt fa-3x text-primary"></i><p data-ar="CSS" data-en="CSS">CSS</p></div>
+                                <div><i class="fab fa-js-square fa-3x text-warning"></i><p data-ar="JavaScript" data-en="JavaScript">JavaScript</p></div>
+                            </div>
+                            <p data-ar="مفاهيم الخلفية: كيف يعمل الإنترنت، تفاصيل HTTP، APIs." data-en="Back-end concepts: How the internet works, HTTP deep dive, APIs.">Back-end concepts: How the internet works, HTTP deep dive, APIs. <a href="https://www.youtube.com/watch?v=zN8YNNHcaZc" class="text-decoration-none" target="_blank">Intro video</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" class="text-decoration-none" target="_blank">HTTP Details</a> | <a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Client-side_web_APIs/Introduction" class="text-decoration-none" target="_blank">API</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="اختر لغة خلفية" data-en="Choose a backend language" class="text-warning"><i class="fas fa-server me-2"></i> Choose a backend language</h5>
+                            <div class="row g-2 text-center">
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="PHP + MySQL" data-en="PHP + MySQL">PHP + MySQL</p></div>
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="NodeJS (JavaScript)" data-en="NodeJS (JavaScript)">NodeJS (JavaScript)</p></div>
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="C# (.NET)" data-en="C# (.NET)">C# (.NET)</p></div>
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="Python (Flask / Django)" data-en="Python (Flask / Django)">Python (Flask / Django)</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Next Steps Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="بعد هذا الكورس — الخطوات التالية" data-en="After this course — Next steps" class="mb-0 text-warning"><i class="fas fa-forward me-2"></i> After this course — Next steps</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="اختبار اختراق الويب" data-en="Web Penetration Testing" class="text-danger"><i class="fas fa-book me-2"></i> Web Penetration Testing</h5>
+                            <p data-ar="الدورات: خالد بن الوليد، محمد السيد (FLEX)، عرب هكسبلويت (eWPTX)، رانا خليل، إبراهيم حجازي." data-en="Courses: Khaled ibn Elwalid, Mohamed Elsayed (FLEX), Arab Hackspoloit (eWPTX), Rana Khalil, Ebrahim Hegazy.">Courses: <a href="https://www.youtube.com/playlist?list=PLBbacta63jciTygwsow0qBxzqBS8WhEHB" class="text-decoration-none" target="_blank">Khaled ibn Elwalid</a>, <a href="https://portswigger.net/web-security" class="text-decoration-none" target="_blank">Mohamed Elsayed (FLEX)</a>, <a href="https://www.youtube.com/playlist?list=PLTSGZiCtCBfMMLkmaN7tGEhbc0QbOEtEA" class="text-decoration-none" target="_blank">Arab Hackspoloit (eWPTX)</a>, <a href="https://academy.ranakhalil.com/courses/category/web-application-penetration-testing" class="text-decoration-none" target="_blank">Rana Khalil</a>, <a href="https://www.youtube.com/playlist?list=PLZNz7wrFA85CgqRMvM6c77hdckkUDigS5" class="text-decoration-none" target="_blank">Ebrahim Hegazy</a>.</p>
+                            <p data-ar="الكتب: دليل هاكر تطبيقات الويب، OWASP WSTG، Web Hacking 101." data-en="Books: Web Application Hacker's Handbook, OWASP WSTG, Web Hacking 101.">Books: <a href="https://dokumen.pub/the-web-application-hackers-handbook-discovering-and-exploiting-security-flaws-9780470170779-0470170778.html" class="text-decoration-none" target="_blank">Web Application Hacker's Handbook</a>, <a href="https://owasp.org/www-project-web-security-testing-guide/" class="text-decoration-none" target="_blank">OWASP WSTG</a>, <a href="https://leanpub.com/web-hacking-101" class="text-decoration-none" target="_blank">Web Hacking 101</a>.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="كيفية التدريب" data-en="How to practice" class="text-danger"><i class="fas fa-bullseye me-2"></i> How to practice</h5>
+                            <ul class="list-unstyled">
+                                <li data-ar="PortSwigger Labs"><i class="fas fa-play-circle me-2"></i><a href="https://portswigger.net/web-security/all-labs" class="text-decoration-none" target="_blank">PortSwigger Labs</a></li>
+                                <li data-ar="Root Me"><i class="fas fa-play-circle me-2"></i><a href="https://www.root-me.org/en/Challenges/" class="text-decoration-none" target="_blank">Root Me</a></li>
+                                <li data-ar="Hack The Box"><i class="fas fa-play-circle me-2"></i><a href="https://www.hackthebox.com/machines" class="text-decoration-none" target="_blank">Hack The Box</a></li>
+                                <li data-ar="PentesterLab"><i class="fas fa-play-circle me-2"></i><a href="https://pentesterlab.com/exercises" class="text-decoration-none" target="_blank">PentesterLab</a></li>
+                                <li data-ar="OverTheWire (Natas), OWASP Juice Shop, DVWA"><i class="fas fa-play-circle me-2"></i><a href="https://overthewire.org/wargames/natas/" class="text-decoration-none" target="_blank">OverTheWire (Natas)</a>, <a href="https://owasp.org/www-project-juice-shop/" class="text-decoration-none" target="_blank">OWASP Juice Shop</a>, <a href="https://github.com/digininja/DVWA" class="text-decoration-none" target="_blank">DVWA</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="الشهادات؟" data-en="Certificates?" class="text-danger"><i class="fas fa-certificate me-2"></i> Certificates?</h5>
+                            <p data-ar="شهادات INE / OFFSEC يمكن أن تعزز فرصك في سوق العمل — مفيدة لكن الخبرة والتطبيق العملي أهم." data-en="INE / OFFSEC certifications can boost your chances in the job market — مفيدة لكن الخبرة والتطبيق العملي أهم."><a href="https://ine.com/security" class="text-decoration-none" target="_blank">INE</a> / <a href="https://offsec.com/courses/" class="text-decoration-none" target="_blank">OFFSEC</a> certifications can boost your chances in the job market — مفيدة لكن الخبرة والتطبيق العملي أهم.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Resources Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="اختبار اختراق الويب" data-en="Web Penetration Testing" class="text-info"><i class="fas fa-globe me-2"></i> Web Penetration Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الدورات: خالد بن الوليد، محمد السيد، eWPTX، رانا خليل، إبراهيم حجازي." data-en="Courses: Khaled ibn Elwalid, Mohamed Elsayed, eWPTX, Rana Khalil, Ebrahim Hegazy.">Courses: <a href="https://www.youtube.com/playlist?list=PLBbacta63jciTygwsow0qBxzqBS8WhEHB" class="text-decoration-none" target="_blank">Khaled ibn Elwalid</a>, <a href="https://portswigger.net/web-security" class="text-decoration-none" target="_blank">Mohamed Elsayed</a>, <a href="https://www.youtube.com/playlist?list=PLTSGZiCtCBfMMLkmaN7tGEhbc0QbOEtEA" class="text-decoration-none" target="_blank">eWPTX</a>, <a href="https://academy.ranakhalil.com/courses/category/web-application-penetration-testing" class="text-decoration-none" target="_blank">Rana Khalil</a>, <a href="https://www.youtube.com/playlist?list=PLZNz7wrFA85CgqRMvM6c77hdckkUDigS5" class="text-decoration-none" target="_blank">Ebrahim Hegazy</a>.</p>
+                            <p data-ar="التدريب: PortSwigger، Root Me، Hack The Box، PentesterLab، OWASP Juice Shop، DVWA." data-en="Practice: PortSwigger, Root Me, Hack The Box, PentesterLab, OWASP Juice Shop, DVWA.">Practice: <a href="https://portswigger.net/web-security" class="text-decoration-none" target="_blank">PortSwigger</a>, <a href="https://www.root-me.org/en/Challenges/" class="text-decoration-none" target="_blank">Root Me</a>, <a href="https://www.hackthebox.com/machines" class="text-decoration-none" target="_blank">Hack The Box</a>, <a href="https://pentesterlab.com/exercises" class="text-decoration-none" target="_blank">PentesterLab</a>, <a href="https://owasp.org/www-project-juice-shop/" class="text-decoration-none" target="_blank">OWASP Juice Shop</a>, <a href="https://github.com/digininja/DVWA" class="text-decoration-none" target="_blank">DVWA</a>.</p>
+                            <p data-ar="الكتب: دليل هاكر تطبيقات الويب، OWASP WSTG، Web Hacking 101." data-en="Books: Web Application Hacker's Handbook, OWASP WSTG, Web Hacking 101.">Books: <a href="https://dokumen.pub/the-web-application-hackers-handbook-discovering-and-exploiting-security-flaws-9780470170779-0470170778.html" class="text-decoration-none" target="_blank">Web Application Hacker's Handbook</a>, <a href="https://owasp.org/www-project-web-security-testing-guide/" class="text-decoration-none" target="_blank">OWASP WSTG</a>, <a href="https://leanpub.com/web-hacking-101" class="text-decoration-none" target="_blank">Web Hacking 101</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="صيد الجوائز" data-en="Bug Bounty Hunting" class="text-info"><i class="fas fa-bug me-2"></i> Bug Bounty Hunting</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الفيديوهات والمنهجيات: Bug Bounty Hunting For Profit، NahamSec، Ahmed Najeh." data-en="Videos & Methodologies: Bug Bounty Hunting For Profit, NahamSec, Ahmed Najeh.">Videos & Methodologies: <a href="https://www.youtube.com/watch?v=j5nm38fSy60" class="text-decoration-none" target="_blank">Bug Bounty Hunting For Profit</a>, <a href="https://www.nahamsec.com/getting-started-in-bug-bounty" class="text-decoration-none" target="_blank">NahamSec</a>, <a href="https://www.udemy.com/user/ahmed-najeh-5/" class="text-decoration-none" target="_blank">Ahmed Najeh</a>.</p>
+                            <p data-ar="الموارد: HackerOne disclosure timeline، Pentester.land writeups، Bug Bounty Hunter Methodology v3، Arabic Bug Bounty Podcasts." data-en="Resources: HackerOne disclosure timeline, Pentester.land writeups, Bug Bounty Hunter Methodology v3, Arabic Bug Bounty Podcasts.">Resources: <a href="http://h1.nobbd.de/" class="text-decoration-none" target="_blank">HackerOne disclosure timeline</a>, <a href="https://pentester.land/writeups/" class="text-decoration-none" target="_blank">Pentester.land writeups</a>, <a href="https://www.bugcrowd.com/resources/levelup/bug-bounty-hunter-methodology-v3/" class="text-decoration-none" target="_blank">Bug Bounty Hunter Methodology v3</a>, <a href="https://www.youtube.com/playlist?list=PL4du0U9bYcLYVdSpP3wKD2K1w0430VKfj" class="text-decoration-none" target="_blank">Arabic Bug Bounty Podcasts</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="اختبار اختراق الشبكة" data-en="Network Penetration Testing" class="text-info"><i class="fas fa-network-wired me-2"></i> Network Penetration Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الدورات: TCM Security (Practical Ethical Hacker)، PWK، مدربي OSCP." data-en="Courses: TCM Security (Practical Ethical Hacker), PWK, OSCP trainers.">Courses: <a href="https://academy.tcm-sec.com/p/practical-ethical-hacking-the-complete-course" class="text-decoration-none" target="_blank">TCM Security (Practical Ethical Hacker)</a>, <a href="https://www.offsec.com/courses/pen-200/" class="text-decoration-none" target="_blank">PWK</a>, <a href="https://www.youtube.com/playlist?list=PLqM63j87R5p4Mp4NP-Oa1kLV6o22RDfex" class="text-decoration-none" target="_blank">OSCP trainers (Motasem Hamdan)</a>.</p>
+                            <p data-ar="التدريب: TryHackMe، Vulnhub، Hack The Box، Hack The Box Academy." data-en="Practice: TryHackMe, Vulnhub, Hack The Box, Hack The Box Academy.">Practice: <a href="https://tryhackme.com/" class="text-decoration-none" target="_blank">TryHackMe</a>, <a href="https://www.vulnhub.com/" class="text-decoration-none" target="_blank">Vulnhub</a>, <a href="https://www.hackthebox.com/machines" class="text-decoration-none" target="_blank">Hack The Box</a>, <a href="https://academy.hackthebox.com/" class="text-decoration-none" target="_blank">Hack The Box Academy</a>.</p>
+                            <p data-ar="الكتب/الموارد: The Art of Network Penetration Testing، خارطة طريق محمد جمال، Tjnull List، Vulnhub-CTF-Writeups." data-en="Books/Resources: The Art of Network Penetration Testing, Muhammed Gamal Roadmap, Tjnull List, Vulnhub-CTF-Writeups.">Books/Resources: <a href="https://www.manning.com/books/the-art-of-network-penetration-testing" class="text-decoration-none" target="_blank">The Art of Network Penetration Testing</a>, <a href="https://github.com/SaferEye/Cyber-Secuirty-roadmap" class="text-decoration-none" target="_blank">Muhammed Gamal Roadmap</a>, <a href="https://github.com/tjnull/OSCP-Stuff" class="text-decoration-none" target="_blank">Tjnull List</a>, <a href="https://github.com/Ignitetechnologies/Vulnhub-CTF-Writeups" class="text-decoration-none" target="_blank">Vulnhub-CTF-Writeups</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="اختبار اختراق الموبايل" data-en="Mobile Penetration Testing" class="text-info"><i class="fas fa-mobile-alt me-2"></i> Mobile Penetration Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الدورات: TCM Sec Mobile Pentesting، Android App Hacking - Black Belt، eMAPT." data-en="Courses: TCM Sec Mobile Pentesting, Android App Hacking - Black Belt, eMAPT.">Courses: <a href="https://academy.tcm-sec.com/p/mobile-application-penetration-testing" class="text-decoration-none" target="_blank">TCM Sec Mobile Pentesting</a>, <a href="https://www.udemy.com/course/android-app-hacking-black-belt-edition/" class="text-decoration-none" target="_blank">Android App Hacking - Black Belt</a>, <a href="https://ine.com/security/certifications/emapt-certification" class="text-decoration-none" target="_blank">eMAPT</a>.</p>
+                            <p data-ar="الموارد والكتب: Hacktricks Mobile Pentesting، فيديو كيفية بدء اختبار تطبيق أندرويد، منشور كيفية بدء اختبار تطبيق أندرويد." data-en="Resources & Books: Hacktricks Mobile Pentesting, How to start Android app pentest video, How to start Android app pentest post.">Resources & Books: <a href="https://book.hacktricks.xyz/mobile-pentesting" class="text-decoration-none" target="_blank">Hacktricks Mobile Pentesting</a>, <a href="https://www.youtube.com/watch?v=FiYmtrlLTQA" class="text-decoration-none" target="_blank">How to start Android app pentest video</a>, <a href="https://www.hackthebox.com/blog/intro-to-mobile-pentesting" class="text-decoration-none" target="_blank">How to start Android app pentest post</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Interview Tips Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="كيفية التحضير لمقابلة تدريب" data-en="How to prepare for an internship interview" class="mb-0 text-secondary"><i class="fas fa-clipboard-list me-2"></i> How to prepare for an internship interview</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-file-alt text-primary"></i></div>
+                        <p data-ar="استخدم قوالب CV متوافقة مع ATS ومراجعتها قبل التقديم. <a href='https://create.microsoft.com/en-us/templates/ats-resumes' target='_blank'>القالب</a>" data-en="Use ATS-friendly CV templates and review before applying. <a href='https://create.microsoft.com/en-us/templates/ats-resumes' target='_blank'>Template</a>">Use ATS-friendly CV templates and review before applying. <a href="https://create.microsoft.com/en-us/templates/ats-resumes" class="text-decoration-none" target="_blank">Template</a></p>
+                    </div>
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-search text-primary"></i></div>
+                        <p data-ar="ابحث عن الشركة والدور." data-en="Research the company and role.">Research the company and role.</p>
+                    </div>
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-question-circle text-primary"></i></div>
+                        <p data-ar="ممارسة الأسئلة الفنية والسلوكية الشائعة." data-en="Practice common technical & behavioral questions.">Practice common technical & behavioral questions.</p>
+                    </div>
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-lightbulb text-primary"></i></div>
+                        <p data-ar="أعد أمثلة حل المشكلات وأسئلة للمحاور." data-en="Prepare problem-solving examples and questions to ask the interviewer.">Prepare problem-solving examples and questions to ask the interviewer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Companies Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="شركات الأمن السيبراني في مصر" data-en="Cybersecurity Companies in Egypt" class="mb-0 text-primary"><i class="fas fa-building me-2"></i> Cybersecurity Companies in Egypt</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4" data-ar="iSec - خدمات أمن سيبراني رائدة في مصر والشرق الأوسط." data-en="iSec - Leading cyber security services in Egypt and MENA."><a href="https://isec-group.com/" class="text-decoration-none" target="_blank">iSec</a> - Leading cyber security services in Egypt and MENA.</div>
+                    <div class="col-md-4" data-ar="قسم أمن تكنولوجيا المعلومات في راية - حلول أمن تكنولوجيا معلومات شاملة." data-en="Raya IT Security Division - Comprehensive IT security solutions."><a href="https://www.raya.com/en/it-security/" class="text-decoration-none" target="_blank">Raya IT Security Division</a> - Comprehensive IT security solutions.</div>
+                    <div class="col-md-4" data-ar="SecureMisr - تركيز على البنية التحتية الآمنة لتكنولوجيا المعلومات." data-en="SecureMisr - Focused on secure IT infrastructure."><a href="https://securemisr.com/" class="text-decoration-none" target="_blank">SecureMisr</a> - Focused on secure IT infrastructure.</div>
+                    <div class="col-md-4" data-ar="TE Data Cybersecurity - ذراع الأمن في مصر للاتصالات." data-en="TE Data Cybersecurity - Telecom Egypt's security arm."><a href="https://www.te.eg/wps/portal/te/Personal/Cybersecurity" class="text-decoration-none" target="_blank">TE Data Cybersecurity</a> - Telecom Egypt's security arm.</div>
+                    <div class="col-md-4" data-ar="FactoSecure - خدمات أمن تكنولوجيا المعلومات والبيانات." data-en="FactoSecure - IT and data security services."><a href="https://factosecure.com/" class="text-decoration-none" target="_blank">FactoSecure</a> - IT and data security services.</div>
+                    <div class="col-md-4" data-ar="Keys Cyber - استشارات و حلول الأمن السيبراني." data-en="Keys Cyber - Cybersecurity consulting and solutions."><a href="https://www.keys-cyber.com/" class="text-decoration-none" target="_blank">Keys Cyber</a> - Cybersecurity consulting and solutions.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="text-center mt-5 pb-5">
+    <div class="container">
+        <p data-ar="شكراً! <i class='fas fa-heart text-danger'></i> أكاديمية الشروق" data-en="Thanks! <i class='fas fa-heart text-danger'></i> Shorouk Academy">Thanks! <i class="fas fa-heart text-danger"></i> Shorouk Academy</p>
+    </div>
+</footer>
+
+<script>
+    // Language switch for static text without breaking links
+    document.addEventListener('DOMContentLoaded', function() {
+        const lang = document.documentElement.getAttribute('data-lang');
+        document.querySelectorAll('[data-ar]').forEach(el => {
+            if (!el.querySelector('a')) {  
+                // لو مفيش لينك جوه العنصر
+                el.textContent = (lang === 'en') ? (el.dataset.en || el.textContent) : (el.dataset.ar || el.textContent);
+            } else {
+                // لو فيه لينك، نغير الـ span بس مش الـ a
+                if (lang === 'en' && el.dataset.en) {
+                    el.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) node.textContent = el.dataset.en;
+                    });
+                } else if (lang === 'ar' && el.dataset.ar) {
+                    el.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) node.textContent = el.dataset.ar;
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+
+{% endblock %} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+edit_note.html 
+
+
+{% extends 'tracker/base.html' %}
+
+{% block title %}تعديل المذكرة - {{ note.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-white">تعديل المذكرة: {{ note.title }}</h2>
+    <div class="card glass-card p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-white">عنوان المذكرة:</label>
+                <input type="text" name="note_title" class="form-control" value="{{ note.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">المحتوى:</label>
+                <textarea name="note_content" class="form-control" rows="6" required>{{ note.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+            <a href="{% url 'content' %}" class="btn btn-secondary">رجوع</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ edit_image.html 
+ 
+ {% extends 'tracker/base.html' %}
+
+{% block title %}تعديل الصورة - {{ image.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-white">تعديل الصورة: {{ image.title }}</h2>
+    <div class="card glass-card p-4">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-white">عنوان الصورة:</label>
+                <input type="text" name="image_title" class="form-control" value="{{ image.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">الصورة الحالية:</label>
+                <img src="{{ image.file.url }}" class="img-fluid mb-2" style="max-height: 200px;">
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">تغيير الصورة (اختياري):</label>
+                <input type="file" name="image_file" class="form-control" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+            <a href="{% url 'content' %}" class="btn btn-secondary">رجوع</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+ edit_english_not.html 
+ 
+{% extends 'tracker/base.html' %}
+
+{% block title %}تعديل مذكرة الإنجليزية - {{ english_note.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-white">تعديل مذكرة الإنجليزية: {{ english_note.title }}</h2>
+    <div class="card glass-card p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-white">العنوان:</label>
+                <input type="text" name="english_title" class="form-control" value="{{ english_note.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">المحتوى:</label>
+                <textarea name="english_content" class="form-control" rows="6" required>{{ english_note.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+            <a href="{% url 'content' %}" class="btn btn-secondary">رجوع</a>
+        </form>
+    </div>
+</div>
+{% endblock %} 
+
+
+
+
+
+
+
+edit_code.html 
+
+{% extends 'tracker/base.html' %}
+
+{% block title %}تعديل الكود - {{ code.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-white">تعديل الكود: {{ code.title }}</h2>
+    <div class="card glass-card p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-white">عنوان الكود:</label>
+                <input type="text" name="code_title" class="form-control" value="{{ code.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-white">الكود:</label>
+                <textarea name="code_content" class="form-control" rows="6" required>{{ code.content }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+            <a href="{% url 'content' %}" class="btn btn-secondary">رجوع</a>
+        </form>
+    </div>
+</div>
+{% endblock %} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+day_detail.html 
+
+{% extends 'tracker/base.html' %}
+
+{% block title %}تفاصيل اليوم - {{ day.date|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b7280);
+    font-family: 'Tajawal', sans-serif;
+}
+.code-textarea, .note-textarea {
+    font-family: 'Courier New', Courier, monospace;
+}
+</style>
+
+<div class="container-fluid py-5">
+    <h2 class="text-center mb-4 text-success">{{ day.date|date:"l, d F Y" }} ({{ day.star|yesno:"★ كامل, يوم عادي" }})</h2>
+    <div class="card glass-card p-4 shadow-lg">
+        <!-- ساعات dropdown -->
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-white">سايبر سكيورتي:</label>
+                    <select name="cyber_hours" class="form-select">
+                        {% for opt in cyber_options %}
+                        <option value="{{ opt }}" {% if opt == day.cyber_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-white">إنجليزي:</label>
+                    <select name="english_hours" class="form-select">
+                        {% for opt in english_options %}
+                        <option value="{{ opt }}" {% if opt == day.english_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">💾 حفظ الساعات</button>
+        </form>
+
+        <!-- إضافة محتوى عام -->
+        <hr class="my-4">
+        <h4 class="text-primary">➕ إضافة محتوى اليوم</h4>
+        <form method="POST" enctype="multipart/form-data" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label text-white">عنوان الكود:</label>
+                <input type="text" name="code_title" class="form-control" required>
+                <label class="form-label text-white">الكود:</label>
+                <textarea name="code_content" class="form-control code-textarea language-python" rows="4" placeholder="Paste your code here..."></textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-white">عنوان الصورة:</label>
+                <input type="text" name="image_title" class="form-control" required>
+                <label class="form-label text-white">الصورة:</label>
+                <input type="file" name="image_file" class="form-control" accept="image/*">
+            </div>
+            <div class="col-12">
+                <label class="form-label text-white">عنوان المذكرة:</label>
+                <input type="text" name="note_title" class="form-control" required>
+                <label class="form-label text-white">المذكرة:</label>
+                <textarea name="note_content" class="form-control note-textarea" rows="4" placeholder="اكتب مذكراتك هنا..."></textarea>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary">📤 إضافة الكل</button>
+            </div>
+        </form>
+
+        <!-- English Notes خاصة -->
+        <hr class="my-4">
+        <h4 class="text-info">🌍 مذكرات الإنجليزي</h4>
+        <form method="POST" class="row g-3 mt-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label text-white">عنوان (Title):</label>
+                <input type="text" name="english_title" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-white">المحتوى (Content):</label>
+                <textarea name="english_content" class="form-control note-textarea" rows="4" placeholder="Write English notes here..."></textarea>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-outline-info">📝 Add English Note</button>
+            </div>
+        </form>
+
+        <!-- عرض التفاصيل الكاملة -->
+        <hr class="my-4">
+        <h4 class="text-secondary">📋 التفاصيل الكاملة لليوم</h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <h6 class="text-primary">💻 الأكواد:</h6>
+                {% for code in day.codes.all %}
+                <div class="card mb-2">
+                    <div class="card-header bg-light">{{ code.title }}</div>
+                    <pre class="card-body m-0 p-3"><code class="language-python">{{ code.content|escape }}</code></pre>
+                    <div class="card-footer p-2">
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_code" value="{{ code.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('{{ code.content|escapejs }}', '{{ code.title|escapejs }}', 'كود')">عرض</button>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">لا أكواد مضافة.</p>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-success">📸 الصور:</h6>
+                {% for image in day.images.all %}
+                <div class="card mb-2">
+                    <img src="{{ image.file.url }}" class="card-img-top rounded" alt="{{ image.title }}" style="height: 150px; object-fit: cover; cursor: pointer;" onclick="openModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">
+                    <div class="card-body p-2">
+                        <h6 class="card-title small">{{ image.title }}</h6>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_image" value="{{ image.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">لا صور مضافة.</p>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-warning">📝 المذكرات:</h6>
+                {% for note in day.notes.all %}
+                <div class="card mb-2">
+                    <div class="card-header bg-light">{{ note.title }}</div>
+                    <div class="card-body p-3">
+                        <p class="note-textarea">{{ note.content|truncatewords:20 }}</p>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('{{ note.content|escapejs }}', '{{ note.title|escapejs }}', 'note')">عرض الكامل</button>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_note" value="{{ note.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">لا مذكرات مضافة.</p>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-info">🌍 English Notes:</h6>
+                {% for enote in day.english_notes.all %}
+                <div class="card mb-2 border-info">
+                    <div class="card-header bg-info text-white">{{ enote.title }}</div>
+                    <div class="card-body p-3">
+                        <p class="note-textarea">{{ enote.content|truncatewords:20 }}</p>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('{{ enote.content|escapejs }}', '{{ enote.title|escapejs }}', 'english_note')">عرض الكامل</button>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_english_note" value="{{ enote.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No English notes added.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% if day.star %}
+        <div class="alert alert-success text-center mt-4">
+            <i class="fas fa-star star"></i> يوم كامل! لقد حصلت على 3 نجوم ⭐⭐⭐
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal لعرض التفاصيل -->
+<div class="modal fade" id="contentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    Prism.highlightAll(); // تلوين الأكواد
+});
+
+function openModal(content, title, type) {
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    modalTitle.textContent = title;
+    if (type === 'image') {
+        modalContent.innerHTML = `<img src="${content}" class="img-fluid" style="max-width: 100%;">`;
+    } else {
+        modalContent.innerHTML = `<pre><code class="language-${type === 'كود' ? 'python' : 'markup'}">${content}</code></pre>`;
+        Prism.highlightAll();
+    }
+    new bootstrap.Modal(document.getElementById('contentModal')).show();
+}
+</script>
+
+{% endblock %} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+content.html 
+{% extends 'tracker/base.html' %}
+
+{% block title %}المحتوى - أكاديمية الشروق{% endblock %}
+
+{% block content %}
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b7280);
+    font-family: 'Tajawal', sans-serif;
+}
+</style>
+
+<div class="container-fluid py-5">
+    <h1 class="text-center mb-5 text-white fw-bold">📚 المحتوى الدراسي</h1>
+
+    <!-- فلترة البحث -->
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card glass-card p-4">
+                <h3 class="text-center mb-4 text-white"><i class="fas fa-search"></i> بحث في المحتوى</h3>
+                <form method="GET" class="d-flex">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" class="form-control me-2" placeholder="ابحث في الأيام، الأكواد، الصور، المذكرات...">
+                    <select name="type" class="form-select me-2" style="width: auto;">
+                        <option value="">الكل</option>
+                        <option value="day" {% if type_filter == 'day' %}selected{% endif %}>يوم</option>
+                        <option value="code" {% if type_filter == 'code' %}selected{% endif %}>كود</option>
+                        <option value="image" {% if type_filter == 'image' %}selected{% endif %}>صورة</option>
+                        <option value="note" {% if type_filter == 'note' %}selected{% endif %}>مذكرة</option>
+                        <option value="english_note" {% if type_filter == 'english_note' %}selected{% endif %}>ملاحظة إنجليزية</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                </form>
+                {% if search_results %}
+                <div class="row mt-4 g-3">
+                    {% for item in search_results %}
+                    <div class="col-md-4">
+                        <div class="card glass-card p-3">
+                            <h6 class="text-white">{{ item.title }}</h6>
+                            <p class="text-white small">نوع: {{ item.item_type }} | {{ item.day.date|date:"d/m/Y" }}</p>
+                            {% if item.item_type == 'صورة' %}
+                            <img src="{{ item.file.url }}" class="img-fluid mb-2" style="max-height: 150px; cursor: pointer;" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">
+                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                            {% else %}
+                            <p class="text-white">{{ item.content|truncatewords:10 }}</p>
+                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.content|escapejs }}', '{{ item.title|escapejs }}', '{{ item.item_type|lower }}')">عرض التفاصيل</button>
+                            {% endif %}
+                            <a href="{% url 'day_detail' item.day.id %}" class="btn btn-secondary btn-sm mt-2">تفاصيل اليوم</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-white mt-4">لا توجد نتائج</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- الأيام المدروسة -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📅 الأيام المدروسة</h3>
+        <div class="row g-3">
+            {% for day in studied_days %}
+            <div class="col-md-3">
+                <div class="card glass-card p-3 text-center">
+                    <h6 class="text-white">{{ day.date|date:"d/m/Y" }}</h6>
+                    <p class="text-white small">سايبر: {{ day.cyber_hours|floatformat:1 }}س</p>
+                    <p class="text-white small">إنجليزي: {{ day.english_hours|floatformat:1 }}س</p>
+                    <p class="text-white small">إجمالي: {{ day.cyber_hours|add:day.english_hours|floatformat:1 }}س</p>
+                    {% if day.star %}<span class="text-warning" style="font-size: 1.5em;">★★★</span>{% endif %}
+                    <a href="{% url 'day_detail' day.id %}" class="btn btn-primary btn-sm mt-2">تفاصيل اليوم</a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد أيام مدروسة</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- الأكواد -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">💻 الأكواد</h3>
+        <div class="row g-3">
+            {% for code in codes %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ code.title }}</h6>
+                    <p class="text-white small">{{ code.day.date|date:"d/m/Y" }}</p>
+                    <p class="text-white">{{ code.content|truncatewords:10 }}</p>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ code.content|escapejs }}', '{{ code.title|escapejs }}', 'كود')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_code' code.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_code" value="{{ code.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد أكواد</p>
+            {% endfor %}
+        </div>
+        {% if more_codes %}
+        <div class="accordion mt-4" id="moreCodes">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCodes">
+                        عرض المزيد من الأكواد ({{ more_codes|length }})
+                    </button>
+                </h2>
+                <div id="collapseCodes" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for code in more_codes %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ code.title }}</h6>
+                                    <p class="text-white small">{{ code.day.date|date:"d/m/Y" }}</p>
+                                    <p class="text-white">{{ code.content|truncatewords:10 }}</p>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ code.content|escapejs }}', '{{ code.title|escapejs }}', 'كود')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_code' code.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_code" value="{{ code.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- الصور -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📷 الصور</h3>
+        <div class="row g-3">
+            {% for image in images %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ image.title }}</h6>
+                    <p class="text-white small">{{ image.day.date|date:"d/m/Y" }}</p>
+                    <img src="{{ image.file.url }}" class="img-fluid mb-2" style="max-height: 150px;">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_image' image.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_image" value="{{ image.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد صور</p>
+            {% endfor %}
+        </div>
+        {% if more_images %}
+        <div class="accordion mt-4" id="moreImages">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImages">
+                        عرض المزيد من الصور ({{ more_images|length }})
+                    </button>
+                </h2>
+                <div id="collapseImages" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for image in more_images %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ image.title }}</h6>
+                                    <p class="text-white small">{{ image.day.date|date:"d/m/Y" }}</p>
+                                    <img src="{{ image.file.url }}" class="img-fluid mb-2" style="max-height: 150px;">
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_image' image.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_image" value="{{ image.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- المذكرات -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📝 المذكرات</h3>
+        <div class="row g-3">
+            {% for note in notes %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ note.title }}</h6>
+                    <p class="text-white small">{{ note.day.date|date:"d/m/Y" }}</p>
+                    <p class="text-white">{{ note.content|truncatewords:10 }}</p>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ note.content|escapejs }}', '{{ note.title|escapejs }}', 'مذكرة')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_note' note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_note" value="{{ note.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد مذكرات</p>
+            {% endfor %}
+        </div>
+        {% if more_notes %}
+        <div class="accordion mt-4" id="moreNotes">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotes">
+                        عرض المزيد من المذكرات ({{ more_notes|length }})
+                    </button>
+                </h2>
+                <div id="collapseNotes" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for note in more_notes %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ note.title }}</h6>
+                                    <p class="text-white small">{{ note.day.date|date:"d/m/Y" }}</p>
+                                    <p class="text-white">{{ note.content|truncatewords:10 }}</p>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ note.content|escapejs }}', '{{ note.title|escapejs }}', 'مذكرة')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_note' note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_note" value="{{ note.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- المذكرات الإنجليزية -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">🇬🇧 المذكرات الإنجليزية</h3>
+        <div class="row g-3">
+            {% for english_note in english_notes %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ english_note.title }}</h6>
+                    <p class="text-white small">{{ english_note.day.date|date:"d/m/Y" }}</p>
+                    <p class="text-white">{{ english_note.content|truncatewords:10 }}</p>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ english_note.content|escapejs }}', '{{ english_note.title|escapejs }}', 'ملاحظة إنجليزية')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_english_note' english_note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_english_note" value="{{ english_note.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد ملاحظات إنجليزية</p>
+            {% endfor %}
+        </div>
+        {% if more_english_notes %}
+        <div class="accordion mt-4" id="moreEnglishNotes">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnglishNotes">
+                        عرض المزيد من المذكرات الإنجليزية ({{ more_english_notes|length }})
+                    </button>
+                </h2>
+                <div id="collapseEnglishNotes" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for english_note in more_english_notes %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ english_note.title }}</h6>
+                                    <p class="text-white small">{{ english_note.day.date|date:"d/m/Y" }}</p>
+                                    <p class="text-white">{{ english_note.content|truncatewords:10 }}</p>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ english_note.content|escapejs }}', '{{ english_note.title|escapejs }}', 'ملاحظة إنجليزية')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_english_note' english_note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_english_note" value="{{ english_note.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal لعرض التفاصيل -->
+    <div class="modal fade" id="contentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    window.openModal = function(content, title, type) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        modalTitle.textContent = title;
+        if (type === 'image') {
+            modalContent.innerHTML = `<img src="${content}" class="img-fluid" style="max-width: 100%;">`;
+        } else {
+            const escapedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            modalContent.innerHTML = `<pre><code class="language-${type === 'كود' ? 'python' : 'markup'}">${escapedContent}</code></pre>`;
+            Prism.highlightAll();
+        }
+        new bootstrap.Modal(document.getElementById('contentModal')).show();
+    };
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ base.html 
+ 
+ <!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}متتبع الدراسة - أكاديمية الشروق{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f8f9ff 0%, #e8f0fe 100%);
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --link-color: #4f46e5;
+            --link-hover-color: #7c3aed;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+            --heading-color: #111827;
+            --accent-color: #374151;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            font-family: 'Tajawal', sans-serif;
+            transition: var(--transition);
+            animation: fadeIn 1s ease-in;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--heading-color);
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--primary-gradient);
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .navbar-nav .nav-link {
+            color: #fff !important;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-collapse {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dropdown-menu {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item {
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--link-hover-color);
+            transform: translateX(-5px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: var(--primary-gradient);
+            padding: 3rem 0;
+            text-align: center;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #d1d5db;
+            opacity: 0.9;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            background: var(--primary-gradient);
+            color: #fff;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            padding: 1rem 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .slide-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .slide-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Agenda List */
+        .agenda-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        .agenda-item {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Links */
+        a {
+            color: var(--link-color);
+            transition: var(--transition);
+            text-decoration: none;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        a:hover {
+            color: var(--link-hover-color);
+            background: rgba(79, 70, 229, 0.2);
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        .link-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .link-list li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .link-list a {
+            font-size: 1rem;
+            padding: 0.3rem 0.75rem;
+            width: 100%;
+        }
+
+        /* Buttons */
+        .btn-custom {
+            background: var(--primary-gradient);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-custom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .card {
+                margin-bottom: 1.5rem;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .link-list a {
+                font-size: 0.9rem;
+                padding: 0.2rem 0.5rem;
+            }
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem 0;
+            text-align: center;
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-graduation-cap me-2"></i> متتبع الشروق</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar me-1"></i> الشهور
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% for month in months %}
+                            <li><a class="dropdown-item" href="{% url 'month_detail' month.id %}"><i class="fas fa-calendar-day me-2"></i>{{ month.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'content' %}"><i class="fas fa-folder-open me-1"></i> الأيام والمحتوى</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stats' %}"><i class="fas fa-chart-line me-1"></i> إحصائيات</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 pt-5">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

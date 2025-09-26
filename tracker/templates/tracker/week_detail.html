@@ -1,0 +1,47 @@
+{% extends 'tracker/base.html' %}
+
+{% load humanize %}
+
+{% block content %}
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+.star {
+    animation: pulse 1s infinite;
+}
+</style>
+
+<h2 class="text-center mb-4 text-info fw-bold">📆 أسبوع {{ week.number }} - {{ week.month.name }} ({{ week.stars|floatformat:0 }} نجمة)</h2>
+<div class="row justify-content-center g-3">
+    {% for day in days %}
+    <div class="col-md-2 col-sm-3">
+        <div class="card p-3 text-center h-100 {% if day.cyber_hours|add:day.english_hours > 0 %}border-primary shadow-lg{% endif %}">
+            <h6 class="fw-bold text-primary">{{ day.date|date:"d/m (E)" }}</h6>
+            <p class="mb-2 small">سايبر: {{ day.cyber_hours|floatformat:1 }}س</p>
+            <p class="mb-2 small">إنجليزي: {{ day.english_hours|floatformat:1 }}س</p>
+            <p class="mb-2 small font-weight-bold">إجمالي: {{ day.cyber_hours|add:day.english_hours|floatformat:1 }}س</p>
+            {% if day.star %}
+            <span class="star text-warning" style="font-size: 1.5em;">★★★</span>
+            {% endif %}
+            <a href="{% url 'day_detail' day.id %}" class="btn btn-custom btn-sm mt-2">تعديل اليوم</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p class="text-muted fs-5">لا أيام مضافة لهذا الأسبوع. أضف يومًا!</p>
+    </div>
+    {% endfor %}
+</div>
+<form method="POST" class="mt-4 text-center">
+    {% csrf_token %}
+    <div class="input-group w-50 mx-auto">
+        <input type="date" name="new_date" class="form-control" min="2025-10-01" max="2026-10-01">
+        <button type="submit" class="btn btn-success">+ أضف يوم مرن</button>
+    </div>
+</form>
+<a href="{% url 'month_detail' week.month.id %}" class="btn btn-secondary mt-3">← رجوع للشهر</a>
+{% endblock %} 
+

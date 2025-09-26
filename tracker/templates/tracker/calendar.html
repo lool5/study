@@ -1,0 +1,294 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}التقويم السنوي - أكاديمية الشروق{% endblock %}
+
+{% block content %}
+<style>
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b21a8);
+    font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif;
+    color: #fff;
+    line-height: 1.6;
+}
+
+/* الكارد */
+.glass-card {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    padding: 2rem;
+}
+
+/* التقويم */
+.calendar-container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* الهيدر */
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #e2e8f0;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* التقويم نفسه */
+.fc {
+    direction: rtl;
+    font-size: 1rem;
+}
+
+.fc .fc-multimonth-title {
+    color: #f1f5f9;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* تخطيط الخانات */
+.fc .fc-daygrid-day {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+/* رقم اليوم */
+.fc .fc-daygrid-day-number {
+    color: #000 !important;
+    font-size: 1rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    margin: 4px auto;
+    display: block;
+}
+
+/* اليوم الحالي */
+.fc .fc-day-today {
+    background: rgba(250, 204, 21, 0.25) !important;
+    border: 2px solid #facc15 !important;
+}
+
+/* الأحداث */
+.fc .fc-daygrid-event {
+    border-radius: 10px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #22c55e, #4ade80) !important;
+    border: 1px solid #15803d !important;
+    color: #064e3b !important;
+    margin: 3px 0;
+    text-align: center;
+}
+
+/* الأحداث بدون نجمة */
+.fc .fc-daygrid-event.no-star {
+    background: linear-gradient(135deg, #ef4444, #f87171) !important;
+    border: 1px solid #b91c1c !important;
+    color: #fff !important;
+}
+
+/* زرار More */
+.fc .fc-daygrid-more-link {
+    background: #22c55e !important;   /* أخضر */
+    color: #fff !important;           /* أبيض */
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 0.9rem;                /* أكبر شوية */
+    font-weight: 700;                 /* تخين */
+    display: block;
+    text-align: center;
+    margin: 6px auto 0 auto;
+    width: fit-content;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* الرقم بتاع اليوم اللي فيه More */
+.fc .fc-daygrid-day:has(.fc-daygrid-more-link) .fc-daygrid-day-number {
+    background: #22c55e !important;   /* أخضر */
+    color: #fff !important;           /* أبيض */
+    font-weight: 800;
+    box-shadow: 0 0 8px rgba(34,197,94,0.6);
+}
+
+
+/* الـPopup بتاع التفاصيل */
+.fc-popover {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    border: none !important;
+    padding: 0.5rem;
+}
+
+.fc-popover-header {
+    background: #1e3a8a;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 8px 8px 0 0;
+    padding: 6px 10px;
+}
+
+.fc-popover-body .fc-daygrid-event {
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+</style>
+
+
+<div class="container-fluid py-5 position-relative">
+    <canvas class="particles" id="particleCanvas"></canvas>
+
+    <div class="hero-section">
+        <h1 class="hero-title">🗓️ التقويم السنوي</h1>
+        <p class="hero-subtitle">تابع تقدمك الدراسي مع عرض واضح للأيام المدروسة والنجوم المكتسبة</p>
+    </div>
+
+    <div class="card glass-card mb-5">
+        <h3 class="text-center mb-4">📅 تقويم الدراسة</h3>
+        <div class="calendar-container">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var events = JSON.parse('{{ events_json|safe }}');
+
+    console.log('Events:', events);
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'multiMonthYear',
+        multiMonthMaxColumns: 3,
+        initialDate: '2025-01-01',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'multiMonthYear,month'
+        },
+        events: events,
+        editable: false,
+        locale: 'ar',
+        direction: 'rtl',
+        dayMaxEventRows: false,   // ❌ مفيش More Button
+        moreLinkClick: false,     // ❌ مفيش زرار مور
+        eventDisplay: 'block',
+
+        // عند الضغط على رقم اليوم
+        dateClick: function(info) {
+            // هات كل الأحداث اللي في اليوم ده
+            var todaysEvents = calendar.getEvents().filter(function(e) {
+                return e.startStr.startsWith(info.dateStr);
+            });
+
+            if (todaysEvents.length > 0) {
+                // نعرض التفاصيل في نافذة مودال أنيقة
+                let details = "<h3 style='margin-bottom:10px'>📅 أحداث اليوم</h3>";
+                todaysEvents.forEach(function(e) {
+                    details += `<div style="
+                        padding:8px;
+                        margin:6px 0;
+                        border-radius:8px;
+                        background:linear-gradient(135deg,#22c55e,#4ade80);
+                        color:#064e3b;
+                        font-weight:600;
+                        ">
+                        ${e.title}
+                    </div>`;
+                });
+
+                // اعمل مودال بسيط
+                let modal = document.createElement("div");
+                modal.innerHTML = `
+                    <div style="
+                        position:fixed;
+                        top:0;left:0;width:100%;height:100%;
+                        background:rgba(0,0,0,0.6);
+                        display:flex;align-items:center;justify-content:center;
+                        z-index:9999;
+                    ">
+                        <div style="
+                            background:#fff;
+                            color:#000;
+                            padding:20px;
+                            border-radius:12px;
+                            max-width:400px;
+                            width:90%;
+                            box-shadow:0 6px 20px rgba(0,0,0,0.4);
+                            text-align:right;
+                            font-family:'Tajawal', sans-serif;
+                        ">
+                            ${details}
+                            <button id="closeModal" style="
+                                margin-top:15px;
+                                background:#dc2626;
+                                color:#fff;
+                                border:none;
+                                padding:8px 12px;
+                                border-radius:8px;
+                                cursor:pointer;
+                            ">إغلاق</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById("closeModal").onclick = function() {
+                    modal.remove();
+                };
+            }
+        }
+    });
+
+    calendar.render();
+
+
+    calendar.render();
+
+    particlesJS('particleCanvas', {
+        particles: {
+            number: { value: 100, density: { enable: true, value_area: 1000 } },
+            color: { value: ['#00ffcc', '#ff99cc', '#99ccff'] },
+            shape: { type: 'circle' },
+            opacity: { value: 0.6, random: true },
+            size: { value: 4, random: true },
+            line_linked: { enable: false },
+            move: { enable: true, speed: 3, direction: 'none', random: true }
+        },
+        interactivity: {
+            detect_on: 'canvas',
+            events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } },
+            modes: { grab: { distance: 150, line_linked: { opacity: 0.5 } }, push: { particles_nb: 4 } }
+        }
+    });
+});
+</script>
+{% endblock %}

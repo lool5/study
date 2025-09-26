@@ -1,0 +1,349 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}المحتوى{% endblock %}
+
+{% block content %}
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b7280);
+    font-family: 'Tajawal', sans-serif;
+}
+</style>
+
+<div class="container-fluid py-5">
+    <h1 class="text-center mb-5 text-white fw-bold">📚 المحتوى الدراسي</h1>
+
+    <!-- فلترة البحث -->
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card glass-card p-4">
+                <h3 class="text-center mb-4 text-white"><i class="fas fa-search"></i> بحث في المحتوى</h3>
+                <form method="GET" class="d-flex">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" class="form-control me-2" placeholder="ابحث في الأيام، الأكواد، الصور، المذكرات...">
+                    <select name="type" class="form-select me-2" style="width: auto;">
+                        <option value="">الكل</option>
+                        <option value="day" {% if type_filter == 'day' %}selected{% endif %}>يوم</option>
+                        <option value="code" {% if type_filter == 'code' %}selected{% endif %}>كود</option>
+                        <option value="image" {% if type_filter == 'image' %}selected{% endif %}>صورة</option>
+                        <option value="note" {% if type_filter == 'note' %}selected{% endif %}>مذكرة</option>
+                        <option value="english_note" {% if type_filter == 'english_note' %}selected{% endif %}>ملاحظة إنجليزية</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                </form>
+                {% if search_results %}
+                <div class="row mt-4 g-3">
+                    {% for item in search_results %}
+                    <div class="col-md-4">
+                        <div class="card glass-card p-3">
+                            <h6 class="text-white">{{ item.title }}</h6>
+                            <p class="text-white small">نوع: {{ item.item_type }} | {{ item.day.date|date:"d/m/Y" }}</p>
+                            {% if item.item_type == 'صورة' %}
+                            <img src="{{ item.file.url }}" class="img-fluid mb-2" style="max-height: 150px; cursor: pointer;" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">
+                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                            {% else %}
+                            <p class="text-white">{{ item.content|truncatewords:10 }}</p>
+                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.content|escapejs }}', '{{ item.title|escapejs }}', '{{ item.item_type|lower }}')">عرض التفاصيل</button>
+                            {% endif %}
+                            <a href="{% url 'day_detail' item.day.id %}" class="btn btn-secondary btn-sm mt-2">تفاصيل اليوم</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-white mt-4">لا توجد نتائج</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- الأيام المدروسة -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📅 الأيام المدروسة</h3>
+        <div class="row g-3">
+            {% for day in studied_days %}
+            <div class="col-md-3">
+                <div class="card glass-card p-3 text-center">
+                    <h6 class="text-white">{{ day.date|date:"d/m/Y" }}</h6>
+                    <p class="text-white small">سايبر: {{ day.cyber_hours|floatformat:1 }}س</p>
+                    <p class="text-white small">إنجليزي: {{ day.english_hours|floatformat:1 }}س</p>
+                    <p class="text-white small">إجمالي: {{ day.cyber_hours|add:day.english_hours|floatformat:1 }}س</p>
+                    {% if day.star %}<span class="text-warning" style="font-size: 1.5em;">★★★</span>{% endif %}
+                    <a href="{% url 'day_detail' day.id %}" class="btn btn-primary btn-sm mt-2">تفاصيل اليوم</a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد أيام مدروسة</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- الأكواد -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">💻 الأكواد</h3>
+        <div class="row g-3">
+            {% for code in codes %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ code.title }}</h6>
+                    <p class="text-white small">{{ code.day.date|date:"d/m/Y" }}</p>
+                    <p class="text-white">{{ code.content|truncatewords:10 }}</p>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ code.content|escapejs }}', '{{ code.title|escapejs }}', 'كود')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_code' code.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_code" value="{{ code.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد أكواد</p>
+            {% endfor %}
+        </div>
+        {% if more_codes %}
+        <div class="accordion mt-4" id="moreCodes">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCodes">
+                        عرض المزيد من الأكواد ({{ more_codes|length }})
+                    </button>
+                </h2>
+                <div id="collapseCodes" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for code in more_codes %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ code.title }}</h6>
+                                    <p class="text-white small">{{ code.day.date|date:"d/m/Y" }}</p>
+                                    <p class="text-white">{{ code.content|truncatewords:10 }}</p>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ code.content|escapejs }}', '{{ code.title|escapejs }}', 'كود')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_code' code.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_code" value="{{ code.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- الصور -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📷 الصور</h3>
+        <div class="row g-3">
+            {% for image in images %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ image.title }}</h6>
+                    <p class="text-white small">{{ image.day.date|date:"d/m/Y" }}</p>
+                    <img src="{{ image.file.url }}" class="img-fluid mb-2" style="max-height: 150px;">
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_image' image.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_image" value="{{ image.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد صور</p>
+            {% endfor %}
+        </div>
+        {% if more_images %}
+        <div class="accordion mt-4" id="moreImages">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImages">
+                        عرض المزيد من الصور ({{ more_images|length }})
+                    </button>
+                </h2>
+                <div id="collapseImages" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for image in more_images %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ image.title }}</h6>
+                                    <p class="text-white small">{{ image.day.date|date:"d/m/Y" }}</p>
+                                    <img src="{{ image.file.url }}" class="img-fluid mb-2" style="max-height: 150px;">
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_image' image.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_image" value="{{ image.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- المذكرات -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">📝 المذكرات</h3>
+        <div class="row g-3">
+            {% for note in notes %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ note.title }}</h6>
+                    <p class="text-white small">{{ note.day.date|date:"d/m/Y" }}</p>
+                    <p class="text-white">{{ note.content|truncatewords:10 }}</p>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ note.content|escapejs }}', '{{ note.title|escapejs }}', 'مذكرة')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_note' note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_note" value="{{ note.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد مذكرات</p>
+            {% endfor %}
+        </div>
+        {% if more_notes %}
+        <div class="accordion mt-4" id="moreNotes">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotes">
+                        عرض المزيد من المذكرات ({{ more_notes|length }})
+                    </button>
+                </h2>
+                <div id="collapseNotes" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for note in more_notes %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ note.title }}</h6>
+                                    <p class="text-white small">{{ note.day.date|date:"d/m/Y" }}</p>
+                                    <p class="text-white">{{ note.content|truncatewords:10 }}</p>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ note.content|escapejs }}', '{{ note.title|escapejs }}', 'مذكرة')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_note' note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_note" value="{{ note.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- المذكرات الإنجليزية -->
+    <div class="card glass-card p-4 mb-5">
+        <h3 class="text-center mb-4 text-white">🇬🇧 المذكرات الإنجليزية</h3>
+        <div class="row g-3">
+            {% for english_note in english_notes %}
+            <div class="col-md-4">
+                <div class="card glass-card p-3">
+                    <h6 class="text-white">{{ english_note.title }}</h6>
+                    <p class="text-white small">{{ english_note.day.date|date:"d/m/Y" }}</p>
+                    <p class="text-white">{{ english_note.content|truncatewords:10 }}</p>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ english_note.content|escapejs }}', '{{ english_note.title|escapejs }}', 'ملاحظة إنجليزية')">عرض التفاصيل</button>
+                    <a href="{% url 'edit_english_note' english_note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_english_note" value="{{ english_note.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center text-white">لا توجد ملاحظات إنجليزية</p>
+            {% endfor %}
+        </div>
+        {% if more_english_notes %}
+        <div class="accordion mt-4" id="moreEnglishNotes">
+            <div class="accordion-item glass-card">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnglishNotes">
+                        عرض المزيد من المذكرات الإنجليزية ({{ more_english_notes|length }})
+                    </button>
+                </h2>
+                <div id="collapseEnglishNotes" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <div class="row g-3">
+                            {% for english_note in more_english_notes %}
+                            <div class="col-md-4">
+                                <div class="card glass-card p-3">
+                                    <h6 class="text-white">{{ english_note.title }}</h6>
+                                    <p class="text-white small">{{ english_note.day.date|date:"d/m/Y" }}</p>
+                                    <p class="text-white">{{ english_note.content|truncatewords:10 }}</p>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('{{ english_note.content|escapejs }}', '{{ english_note.title|escapejs }}', 'ملاحظة إنجليزية')">عرض التفاصيل</button>
+                                    <a href="{% url 'edit_english_note' english_note.id %}" class="btn btn-secondary btn-sm mt-2">تعديل</a>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_english_note" value="{{ english_note.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm mt-2">حذف</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal لعرض التفاصيل -->
+    <div class="modal fade" id="contentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    window.openModal = function(content, title, type) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        modalTitle.textContent = title;
+        if (type === 'image') {
+            modalContent.innerHTML = `<img src="${content}" class="img-fluid" style="max-width: 100%;">`;
+        } else {
+            const escapedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            modalContent.innerHTML = `<pre><code class="language-${type === 'كود' ? 'python' : 'markup'}">${escapedContent}</code></pre>`;
+            Prism.highlightAll();
+        }
+        new bootstrap.Modal(document.getElementById('contentModal')).show();
+    };
+});
+</script>
+{% endblock %}

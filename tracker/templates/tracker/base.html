@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}متتبع الدراسة{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-dark.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f8f9ff 0%, #e8f0fe 100%);
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --link-color: #4f46e5;
+            --link-hover-color: #7c3aed;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+            --heading-color: #111827;
+            --accent-color: #374151;
+            --star-color: #FFD700; /* لون النجوم */
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1.1rem; /* زيادة حجم الخط الأساسي للوضوح */
+            font-weight: 400; /* وزن خفيف للنصوص العادية */
+            transition: var(--transition);
+            animation: fadeIn 1s ease-in;
+            line-height: 1.8; /* زيادة المسافة بين السطور للوضوح */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .star {
+            animation: pulse 1s infinite;
+        }
+
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--heading-color);
+            font-weight: 700; /* وزن ثقيل للعناوين */
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        h5 {
+            font-size: 1.3rem;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--primary-gradient);
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem; /* زيادة حجم النص في العلامة التجارية */
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .navbar-nav .nav-link {
+            color: #fff !important;
+            font-size: 1rem; /* زيادة حجم الخط للروابط */
+            font-weight: 500; /* وزن متوسط للروابط */
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar-collapse {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dropdown-menu {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: none;
+            font-size: 1rem; /* زيادة حجم الخط في القائمة المنسدلة */
+        }
+
+        .dropdown-item {
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--link-hover-color);
+            transform: translateX(-5px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: var(--primary-gradient);
+            padding: 3rem 0;
+            text-align: center;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #d1d5db;
+            opacity: 0.9;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            background: var(--primary-gradient);
+            color: #fff;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            padding: 1rem 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .slide-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .slide-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Day Item (لدعم month_detail.html) */
+        .day-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            transition: var(--transition);
+            font-size: 1rem; /* حجم خط واضح */
+            font-weight: 500;
+        }
+
+        .day-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .day-item a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .day-item a:hover {
+            color: var(--link-hover-color);
+        }
+
+        .day-item .stars {
+            color: var(--star-color);
+            font-size: 1.2rem;
+            font-weight: 700; /* وزن ثقيل للنجوم */
+        }
+
+        .day-item .hours {
+            font-size: 0.95rem;
+            color: #d1d5db;
+            font-weight: 400; /* وزن خفيف للساعات */
+        }
+
+        /* Week Day Card (لدعم week_detail.html) */
+        .week-day-card {
+            background: var(--card-bg);
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .week-day-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-gradient);
+        }
+
+        .week-day-card h6 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .week-day-card p {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .week-day-card .star {
+            color: var(--star-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .week-day-card .btn-custom {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+
+        /* Agenda List */
+        .agenda-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        .agenda-item {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Links */
+        a {
+            color: var(--link-color);
+            transition: var(--transition);
+            text-decoration: none;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            display: inline-block;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: var(--link-hover-color);
+            background: rgba(79, 70, 229, 0.2);
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        .link-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .link-list li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .link-list a {
+            font-size: 1rem;
+            padding: 0.3rem 0.75rem;
+            width: 100%;
+        }
+
+        /* Buttons */
+        .btn-custom {
+            background: var(--primary-gradient);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .btn-custom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                font-size: 1rem; /* تقليل طفيف لحجم الخط على الشاشات الصغيرة */
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .card {
+                margin-bottom: 1.5rem;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+
+            .dropdown-menu {
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .link-list a {
+                font-size: 0.9rem;
+                padding: 0.2rem 0.5rem;
+            }
+
+            .day-item {
+                font-size: 0.9rem;
+            }
+
+            .day-item .stars {
+                font-size: 1rem;
+            }
+
+            .day-item .hours {
+                font-size: 0.85rem;
+            }
+
+            .week-day-card h6 {
+                font-size: 1rem;
+            }
+
+            .week-day-card p {
+                font-size: 0.85rem;
+            }
+
+            .week-day-card .star {
+                font-size: 1.3rem;
+            }
+
+            .week-day-card .btn-custom {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+            }
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem 0;
+            text-align: center;
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-graduation-cap me-2"></i>متتبع الدراسه</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar me-1"></i> الشهور
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% for month in months %}
+                            <li><a class="dropdown-item" href="{% url 'month_detail' month.id %}"><i class="fas fa-calendar-day me-2"></i>{{ month.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'content' %}"><i class="fas fa-folder-open me-1"></i> الأيام والمحتوى</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stats' %}"><i class="fas fa-chart-line me-1"></i> إحصائيات</a>
+                    </li>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'calendar' %}"><i class="fas fa-calendar-alt me-1"></i> التقويم السنوي</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 pt-5">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

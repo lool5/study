@@ -1,0 +1,304 @@
+{% extends 'tracker/base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1 data-ar="الرود ماب" data-en="Shorouk Academy"><i class="fas fa-shield-alt me-2"></i>Shorouk Academy</h1>
+        <h2 data-ar="خارطة طريق الأمن السيبراني" data-en="Our Last Session - Cybersecurity Roadmap">Our Last Session - Cybersecurity Roadmap</h2>
+    </div>
+</section>
+
+<!-- Agenda Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="الأجندة" data-en="Agenda" class="mb-0"><i class="fas fa-list-ul me-2"></i>الأجندة</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <ul class="list-unstyled fs-5">
+                            <li class="mb-3" data-ar="مراجعة ما تعلمناه!" data-en="Flashback what we have learned!"><i class="fas fa-history text-warning me-2"></i>Flashback what we have learned!</li>
+                            <li class="mb-3" data-ar="بعد هذا الكورس، ما هي الخطوات التالية؟" data-en="After this course, what are the next steps?"><i class="fas fa-forward text-info me-2"></i>After this course, what are the next steps?</li>
+                            <li class="mb-3" data-ar="هل الشهادات مهمة؟" data-en="Are certificates important?"><i class="fas fa-certificate text-success me-2"></i>Are certificates important?</li>
+                            <li class="mb-3" data-ar="كيفية التحضير لمقابلة تدريب؟" data-en="How to prepare for an internship interview?"><i class="fas fa-microphone text-danger me-2"></i>How to prepare for an internship interview?</li>
+                            <li class="mb-3" data-ar="شركات الأمن السيبراني في مصر؟" data-en="Cybersecurity companies in Egypt?"><i class="fas fa-building text-primary me-2"></i>Cybersecurity companies in Egypt?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Flashback Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="مراجعة ما تعلمناه" data-en="Flashback — What we learned" class="mb-0 text-success"><i class="fas fa-history me-2"></i> Flashback — What we learned</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="أساسيات الأمن السيبراني" data-en="Cyber Security Basics" class="text-primary"><i class="fas fa-shield-alt me-2"></i> Cyber Security Basics</h5>
+                            <p data-ar="إعداد المعامل، فهم المصطلحات الأساسية، ومقدمة في اختبار الاختراق، الفريق الأحمر والأزرق." data-en="Set up labs, understood basic terms, and got introduced to Penetration Testing, Red Teaming, and Blue Teaming.">Set up labs, understood basic terms, and got introduced to Penetration Testing, Red Teaming, and Blue Teaming. <a href="https://www.youtube.com/watch?v=i8rizLc4hc0" class="text-decoration-none" target="_blank">Watch</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="أساسيات لينكس" data-en="Linux Fundamentals" class="text-primary"><i class="fab fa-linux me-2"></i> Linux Fundamentals</h5>
+                            <p data-ar="استكشاف internals لينكس، التنقل، الصلاحيات، إدارة البرمجيات، إدارة العمليات، وأدوات الشل." data-en="Explored Linux internals, system navigation, user permissions, software management, process management, and shell utilities.">Explored Linux internals, system navigation, user permissions, software management, process management, and shell utilities. <a href="https://tryhackme.com/room/linuxfundamentalspart1" class="text-decoration-none" target="_blank">Resources [1-13]</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="أساسيات الشبكات" data-en="Network Fundamentals" class="text-primary"><i class="fas fa-network-wired me-2"></i> Network Fundamentals</h5>
+                            <p data-ar="تعلم عن عمليات الشبكة، الأجهزة، النماذج (TCP/IP، OSI)، الطوبولوجيا، عناوين IP وMAC، البروتوكولات، وأدوات أساسية مثل Wireshark." data-en="Learned about network operations, devices, models (TCP/IP, OSI), topologies, IP and MAC addresses, protocols, and essential tools like Wireshark.">Learned about network operations, devices, models (TCP/IP, OSI), topologies, IP and MAC addresses, protocols, and essential tools like Wireshark. <a href="https://tryhackme.com/room/introtonetworking" class="text-decoration-none" target="_blank">Resources [22-29]</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="اختبار الاختراق" data-en="Penetration Testing" class="text-primary"><i class="fas fa-hacker me-2"></i> Penetration Testing</h5>
+                            <p data-ar="ممارسة الاستطلاع، المسح، الاستغلال، ما بعد الاستغلال، والمشاركة في تحديات Capture-the-Flag." data-en="Practiced reconnaissance, scanning, exploitation, post-exploitation, and participated in Capture-the-Flag challenges.">Practiced reconnaissance, scanning, exploitation, post-exploitation, and participated in Capture-the-Flag challenges. <a href="https://netriders.academy/courses/penetration-testing-student/" class="text-decoration-none" target="_blank">Course</a></p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="الفريق الأزرق" data-en="Blue Teaming" class="text-primary"><i class="fas fa-shield-alt me-2"></i> Blue Teaming</h5>
+                            <p data-ar="إجراء تحليل البريد الإلكتروني والبرمجيات الضارة، ودراسة أساسيات الطب الشرعي الرقمي." data-en="Conducted email and malware analysis, and studied the basics of digital forensics.">Conducted email and malware analysis, and studied the basics of digital forensics.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Programming Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="البرمجة وأساسيات الويب" data-en="Programming & Web basics" class="mb-0 text-info"><i class="fas fa-code me-2"></i> Programming & Web basics</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="slide-card p-3 text-center">
+                            <h5 data-ar="الواجهة الأمامية" data-en="FrontEnd" class="text-warning"><i class="fas fa-laptop-code me-2"></i> FrontEnd</h5>
+                            <div class="d-flex justify-content-center gap-3 mb-3">
+                                <div><i class="fab fa-html5 fa-3x text-danger"></i><p data-ar="HTML" data-en="HTML">HTML</p></div>
+                                <div><i class="fab fa-css3-alt fa-3x text-primary"></i><p data-ar="CSS" data-en="CSS">CSS</p></div>
+                                <div><i class="fab fa-js-square fa-3x text-warning"></i><p data-ar="JavaScript" data-en="JavaScript">JavaScript</p></div>
+                            </div>
+                            <p data-ar="مفاهيم الخلفية: كيف يعمل الإنترنت، تفاصيل HTTP، APIs." data-en="Back-end concepts: How the internet works, HTTP deep dive, APIs.">Back-end concepts: How the internet works, HTTP deep dive, APIs. <a href="https://www.youtube.com/watch?v=zN8YNNHcaZc" class="text-decoration-none" target="_blank">Intro video</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP" class="text-decoration-none" target="_blank">HTTP Details</a> | <a href="https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Client-side_web_APIs/Introduction" class="text-decoration-none" target="_blank">API</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="اختر لغة خلفية" data-en="Choose a backend language" class="text-warning"><i class="fas fa-server me-2"></i> Choose a backend language</h5>
+                            <div class="row g-2 text-center">
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="PHP + MySQL" data-en="PHP + MySQL">PHP + MySQL</p></div>
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="NodeJS (JavaScript)" data-en="NodeJS (JavaScript)">NodeJS (JavaScript)</p></div>
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="C# (.NET)" data-en="C# (.NET)">C# (.NET)</p></div>
+                                <div class="col-6"><i class="fas fa-check text-success fa-2x"></i><p data-ar="Python (Flask / Django)" data-en="Python (Flask / Django)">Python (Flask / Django)</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Next Steps Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="بعد هذا الكورس — الخطوات التالية" data-en="After this course — Next steps" class="mb-0 text-warning"><i class="fas fa-forward me-2"></i> After this course — Next steps</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="اختبار اختراق الويب" data-en="Web Penetration Testing" class="text-danger"><i class="fas fa-book me-2"></i> Web Penetration Testing</h5>
+                            <p data-ar="الدورات: خالد بن الوليد، محمد السيد (FLEX)، عرب هكسبلويت (eWPTX)، رانا خليل، إبراهيم حجازي." data-en="Courses: Khaled ibn Elwalid, Mohamed Elsayed (FLEX), Arab Hackspoloit (eWPTX), Rana Khalil, Ebrahim Hegazy.">Courses: <a href="https://www.youtube.com/playlist?list=PLBbacta63jciTygwsow0qBxzqBS8WhEHB" class="text-decoration-none" target="_blank">Khaled ibn Elwalid</a>, <a href="https://portswigger.net/web-security" class="text-decoration-none" target="_blank">Mohamed Elsayed (FLEX)</a>, <a href="https://www.youtube.com/playlist?list=PLTSGZiCtCBfMMLkmaN7tGEhbc0QbOEtEA" class="text-decoration-none" target="_blank">Arab Hackspoloit (eWPTX)</a>, <a href="https://academy.ranakhalil.com/courses/category/web-application-penetration-testing" class="text-decoration-none" target="_blank">Rana Khalil</a>, <a href="https://www.youtube.com/playlist?list=PLZNz7wrFA85CgqRMvM6c77hdckkUDigS5" class="text-decoration-none" target="_blank">Ebrahim Hegazy</a>.</p>
+                            <p data-ar="الكتب: دليل هاكر تطبيقات الويب، OWASP WSTG، Web Hacking 101." data-en="Books: Web Application Hacker's Handbook, OWASP WSTG, Web Hacking 101.">Books: <a href="https://dokumen.pub/the-web-application-hackers-handbook-discovering-and-exploiting-security-flaws-9780470170779-0470170778.html" class="text-decoration-none" target="_blank">Web Application Hacker's Handbook</a>, <a href="https://owasp.org/www-project-web-security-testing-guide/" class="text-decoration-none" target="_blank">OWASP WSTG</a>, <a href="https://leanpub.com/web-hacking-101" class="text-decoration-none" target="_blank">Web Hacking 101</a>.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="كيفية التدريب" data-en="How to practice" class="text-danger"><i class="fas fa-bullseye me-2"></i> How to practice</h5>
+                            <ul class="list-unstyled">
+                                <li data-ar="PortSwigger Labs"><i class="fas fa-play-circle me-2"></i><a href="https://portswigger.net/web-security/all-labs" class="text-decoration-none" target="_blank">PortSwigger Labs</a></li>
+                                <li data-ar="Root Me"><i class="fas fa-play-circle me-2"></i><a href="https://www.root-me.org/en/Challenges/" class="text-decoration-none" target="_blank">Root Me</a></li>
+                                <li data-ar="Hack The Box"><i class="fas fa-play-circle me-2"></i><a href="https://www.hackthebox.com/machines" class="text-decoration-none" target="_blank">Hack The Box</a></li>
+                                <li data-ar="PentesterLab"><i class="fas fa-play-circle me-2"></i><a href="https://pentesterlab.com/exercises" class="text-decoration-none" target="_blank">PentesterLab</a></li>
+                                <li data-ar="OverTheWire (Natas), OWASP Juice Shop, DVWA"><i class="fas fa-play-circle me-2"></i><a href="https://overthewire.org/wargames/natas/" class="text-decoration-none" target="_blank">OverTheWire (Natas)</a>, <a href="https://owasp.org/www-project-juice-shop/" class="text-decoration-none" target="_blank">OWASP Juice Shop</a>, <a href="https://github.com/digininja/DVWA" class="text-decoration-none" target="_blank">DVWA</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="slide-card p-3">
+                            <h5 data-ar="الشهادات؟" data-en="Certificates?" class="text-danger"><i class="fas fa-certificate me-2"></i> Certificates?</h5>
+                            <p data-ar="شهادات INE / OFFSEC يمكن أن تعزز فرصك في سوق العمل — مفيدة لكن الخبرة والتطبيق العملي أهم." data-en="INE / OFFSEC certifications can boost your chances in the job market — مفيدة لكن الخبرة والتطبيق العملي أهم."><a href="https://ine.com/security" class="text-decoration-none" target="_blank">INE</a> / <a href="https://offsec.com/courses/" class="text-decoration-none" target="_blank">OFFSEC</a> certifications can boost your chances in the job market — مفيدة لكن الخبرة والتطبيق العملي أهم.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Resources Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="اختبار اختراق الويب" data-en="Web Penetration Testing" class="text-info"><i class="fas fa-globe me-2"></i> Web Penetration Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الدورات: خالد بن الوليد، محمد السيد، eWPTX، رانا خليل، إبراهيم حجازي." data-en="Courses: Khaled ibn Elwalid, Mohamed Elsayed, eWPTX, Rana Khalil, Ebrahim Hegazy.">Courses: <a href="https://www.youtube.com/playlist?list=PLBbacta63jciTygwsow0qBxzqBS8WhEHB" class="text-decoration-none" target="_blank">Khaled ibn Elwalid</a>, <a href="https://portswigger.net/web-security" class="text-decoration-none" target="_blank">Mohamed Elsayed</a>, <a href="https://www.youtube.com/playlist?list=PLTSGZiCtCBfMMLkmaN7tGEhbc0QbOEtEA" class="text-decoration-none" target="_blank">eWPTX</a>, <a href="https://academy.ranakhalil.com/courses/category/web-application-penetration-testing" class="text-decoration-none" target="_blank">Rana Khalil</a>, <a href="https://www.youtube.com/playlist?list=PLZNz7wrFA85CgqRMvM6c77hdckkUDigS5" class="text-decoration-none" target="_blank">Ebrahim Hegazy</a>.</p>
+                            <p data-ar="التدريب: PortSwigger، Root Me، Hack The Box، PentesterLab، OWASP Juice Shop، DVWA." data-en="Practice: PortSwigger, Root Me, Hack The Box, PentesterLab, OWASP Juice Shop, DVWA.">Practice: <a href="https://portswigger.net/web-security" class="text-decoration-none" target="_blank">PortSwigger</a>, <a href="https://www.root-me.org/en/Challenges/" class="text-decoration-none" target="_blank">Root Me</a>, <a href="https://www.hackthebox.com/machines" class="text-decoration-none" target="_blank">Hack The Box</a>, <a href="https://pentesterlab.com/exercises" class="text-decoration-none" target="_blank">PentesterLab</a>, <a href="https://owasp.org/www-project-juice-shop/" class="text-decoration-none" target="_blank">OWASP Juice Shop</a>, <a href="https://github.com/digininja/DVWA" class="text-decoration-none" target="_blank">DVWA</a>.</p>
+                            <p data-ar="الكتب: دليل هاكر تطبيقات الويب، OWASP WSTG، Web Hacking 101." data-en="Books: Web Application Hacker's Handbook, OWASP WSTG, Web Hacking 101.">Books: <a href="https://dokumen.pub/the-web-application-hackers-handbook-discovering-and-exploiting-security-flaws-9780470170779-0470170778.html" class="text-decoration-none" target="_blank">Web Application Hacker's Handbook</a>, <a href="https://owasp.org/www-project-web-security-testing-guide/" class="text-decoration-none" target="_blank">OWASP WSTG</a>, <a href="https://leanpub.com/web-hacking-101" class="text-decoration-none" target="_blank">Web Hacking 101</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="صيد الجوائز" data-en="Bug Bounty Hunting" class="text-info"><i class="fas fa-bug me-2"></i> Bug Bounty Hunting</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الفيديوهات والمنهجيات: Bug Bounty Hunting For Profit، NahamSec، Ahmed Najeh." data-en="Videos & Methodologies: Bug Bounty Hunting For Profit, NahamSec, Ahmed Najeh.">Videos & Methodologies: <a href="https://www.youtube.com/watch?v=j5nm38fSy60" class="text-decoration-none" target="_blank">Bug Bounty Hunting For Profit</a>, <a href="https://www.nahamsec.com/getting-started-in-bug-bounty" class="text-decoration-none" target="_blank">NahamSec</a>, <a href="https://www.udemy.com/user/ahmed-najeh-5/" class="text-decoration-none" target="_blank">Ahmed Najeh</a>.</p>
+                            <p data-ar="الموارد: HackerOne disclosure timeline، Pentester.land writeups، Bug Bounty Hunter Methodology v3، Arabic Bug Bounty Podcasts." data-en="Resources: HackerOne disclosure timeline, Pentester.land writeups, Bug Bounty Hunter Methodology v3, Arabic Bug Bounty Podcasts.">Resources: <a href="http://h1.nobbd.de/" class="text-decoration-none" target="_blank">HackerOne disclosure timeline</a>, <a href="https://pentester.land/writeups/" class="text-decoration-none" target="_blank">Pentester.land writeups</a>, <a href="https://www.bugcrowd.com/resources/levelup/bug-bounty-hunter-methodology-v3/" class="text-decoration-none" target="_blank">Bug Bounty Hunter Methodology v3</a>, <a href="https://www.youtube.com/playlist?list=PL4du0U9bYcLYVdSpP3wKD2K1w0430VKfj" class="text-decoration-none" target="_blank">Arabic Bug Bounty Podcasts</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="اختبار اختراق الشبكة" data-en="Network Penetration Testing" class="text-info"><i class="fas fa-network-wired me-2"></i> Network Penetration Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الدورات: TCM Security (Practical Ethical Hacker)، PWK، مدربي OSCP." data-en="Courses: TCM Security (Practical Ethical Hacker), PWK, OSCP trainers.">Courses: <a href="https://academy.tcm-sec.com/p/practical-ethical-hacking-the-complete-course" class="text-decoration-none" target="_blank">TCM Security (Practical Ethical Hacker)</a>, <a href="https://www.offsec.com/courses/pen-200/" class="text-decoration-none" target="_blank">PWK</a>, <a href="https://www.youtube.com/playlist?list=PLqM63j87R5p4Mp4NP-Oa1kLV6o22RDfex" class="text-decoration-none" target="_blank">OSCP trainers (Motasem Hamdan)</a>.</p>
+                            <p data-ar="التدريب: TryHackMe، Vulnhub، Hack The Box، Hack The Box Academy." data-en="Practice: TryHackMe, Vulnhub, Hack The Box, Hack The Box Academy.">Practice: <a href="https://tryhackme.com/" class="text-decoration-none" target="_blank">TryHackMe</a>, <a href="https://www.vulnhub.com/" class="text-decoration-none" target="_blank">Vulnhub</a>, <a href="https://www.hackthebox.com/machines" class="text-decoration-none" target="_blank">Hack The Box</a>, <a href="https://academy.hackthebox.com/" class="text-decoration-none" target="_blank">Hack The Box Academy</a>.</p>
+                            <p data-ar="الكتب/الموارد: The Art of Network Penetration Testing، خارطة طريق محمد جمال، Tjnull List، Vulnhub-CTF-Writeups." data-en="Books/Resources: The Art of Network Penetration Testing, Muhammed Gamal Roadmap, Tjnull List, Vulnhub-CTF-Writeups.">Books/Resources: <a href="https://www.manning.com/books/the-art-of-network-penetration-testing" class="text-decoration-none" target="_blank">The Art of Network Penetration Testing</a>, <a href="https://github.com/SaferEye/Cyber-Secuirty-roadmap" class="text-decoration-none" target="_blank">Muhammed Gamal Roadmap</a>, <a href="https://github.com/tjnull/OSCP-Stuff" class="text-decoration-none" target="_blank">Tjnull List</a>, <a href="https://github.com/Ignitetechnologies/Vulnhub-CTF-Writeups" class="text-decoration-none" target="_blank">Vulnhub-CTF-Writeups</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 data-ar="اختبار اختراق الموبايل" data-en="Mobile Penetration Testing" class="text-info"><i class="fas fa-mobile-alt me-2"></i> Mobile Penetration Testing</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="slide-card p-3">
+                            <p data-ar="الدورات: TCM Sec Mobile Pentesting، Android App Hacking - Black Belt، eMAPT." data-en="Courses: TCM Sec Mobile Pentesting, Android App Hacking - Black Belt, eMAPT.">Courses: <a href="https://academy.tcm-sec.com/p/mobile-application-penetration-testing" class="text-decoration-none" target="_blank">TCM Sec Mobile Pentesting</a>, <a href="https://www.udemy.com/course/android-app-hacking-black-belt-edition/" class="text-decoration-none" target="_blank">Android App Hacking - Black Belt</a>, <a href="https://ine.com/security/certifications/emapt-certification" class="text-decoration-none" target="_blank">eMAPT</a>.</p>
+                            <p data-ar="الموارد والكتب: Hacktricks Mobile Pentesting، فيديو كيفية بدء اختبار تطبيق أندرويد، منشور كيفية بدء اختبار تطبيق أندرويد." data-en="Resources & Books: Hacktricks Mobile Pentesting, How to start Android app pentest video, How to start Android app pentest post.">Resources & Books: <a href="https://book.hacktricks.xyz/mobile-pentesting" class="text-decoration-none" target="_blank">Hacktricks Mobile Pentesting</a>, <a href="https://www.youtube.com/watch?v=FiYmtrlLTQA" class="text-decoration-none" target="_blank">How to start Android app pentest video</a>, <a href="https://www.hackthebox.com/blog/intro-to-mobile-pentesting" class="text-decoration-none" target="_blank">How to start Android app pentest post</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Interview Tips Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="كيفية التحضير لمقابلة تدريب" data-en="How to prepare for an internship interview" class="mb-0 text-secondary"><i class="fas fa-clipboard-list me-2"></i> How to prepare for an internship interview</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-file-alt text-primary"></i></div>
+                        <p data-ar="استخدم قوالب CV متوافقة مع ATS ومراجعتها قبل التقديم. <a href='https://create.microsoft.com/en-us/templates/ats-resumes' target='_blank'>القالب</a>" data-en="Use ATS-friendly CV templates and review before applying. <a href='https://create.microsoft.com/en-us/templates/ats-resumes' target='_blank'>Template</a>">Use ATS-friendly CV templates and review before applying. <a href="https://create.microsoft.com/en-us/templates/ats-resumes" class="text-decoration-none" target="_blank">Template</a></p>
+                    </div>
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-search text-primary"></i></div>
+                        <p data-ar="ابحث عن الشركة والدور." data-en="Research the company and role.">Research the company and role.</p>
+                    </div>
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-question-circle text-primary"></i></div>
+                        <p data-ar="ممارسة الأسئلة الفنية والسلوكية الشائعة." data-en="Practice common technical & behavioral questions.">Practice common technical & behavioral questions.</p>
+                    </div>
+                    <div class="col-md-3 text-center hover-lift">
+                        <div class="section-icon mb-3"><i class="fas fa-lightbulb text-primary"></i></div>
+                        <p data-ar="أعد أمثلة حل المشكلات وأسئلة للمحاور." data-en="Prepare problem-solving examples and questions to ask the interviewer.">Prepare problem-solving examples and questions to ask the interviewer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Companies Section -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 data-ar="شركات الأمن السيبراني في مصر" data-en="Cybersecurity Companies in Egypt" class="mb-0 text-primary"><i class="fas fa-building me-2"></i> Cybersecurity Companies in Egypt</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4" data-ar="iSec - خدمات أمن سيبراني رائدة في مصر والشرق الأوسط." data-en="iSec - Leading cyber security services in Egypt and MENA."><a href="https://isec-group.com/" class="text-decoration-none" target="_blank">iSec</a> - Leading cyber security services in Egypt and MENA.</div>
+                    <div class="col-md-4" data-ar="قسم أمن تكنولوجيا المعلومات في راية - حلول أمن تكنولوجيا معلومات شاملة." data-en="Raya IT Security Division - Comprehensive IT security solutions."><a href="https://www.raya.com/en/it-security/" class="text-decoration-none" target="_blank">Raya IT Security Division</a> - Comprehensive IT security solutions.</div>
+                    <div class="col-md-4" data-ar="SecureMisr - تركيز على البنية التحتية الآمنة لتكنولوجيا المعلومات." data-en="SecureMisr - Focused on secure IT infrastructure."><a href="https://securemisr.com/" class="text-decoration-none" target="_blank">SecureMisr</a> - Focused on secure IT infrastructure.</div>
+                    <div class="col-md-4" data-ar="TE Data Cybersecurity - ذراع الأمن في مصر للاتصالات." data-en="TE Data Cybersecurity - Telecom Egypt's security arm."><a href="https://www.te.eg/wps/portal/te/Personal/Cybersecurity" class="text-decoration-none" target="_blank">TE Data Cybersecurity</a> - Telecom Egypt's security arm.</div>
+                    <div class="col-md-4" data-ar="FactoSecure - خدمات أمن تكنولوجيا المعلومات والبيانات." data-en="FactoSecure - IT and data security services."><a href="https://factosecure.com/" class="text-decoration-none" target="_blank">FactoSecure</a> - IT and data security services.</div>
+                    <div class="col-md-4" data-ar="Keys Cyber - استشارات و حلول الأمن السيبراني." data-en="Keys Cyber - Cybersecurity consulting and solutions."><a href="https://www.keys-cyber.com/" class="text-decoration-none" target="_blank">Keys Cyber</a> - Cybersecurity consulting and solutions.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="text-center mt-5 pb-5">
+    <div class="container">
+        <p data-ar="Programmed by Aladdin" data-en="Thanks! <i class='fas fa-heart text-danger'></i> Shorouk Academy">Thanks! <i class="fas fa-heart text-danger"></i> Shorouk Academy</p>
+    </div>
+</footer>
+
+<script>
+    // Language switch for static text without breaking links
+    document.addEventListener('DOMContentLoaded', function() {
+        const lang = document.documentElement.getAttribute('data-lang');
+        document.querySelectorAll('[data-ar]').forEach(el => {
+            if (!el.querySelector('a')) {  
+                // لو مفيش لينك جوه العنصر
+                el.textContent = (lang === 'en') ? (el.dataset.en || el.textContent) : (el.dataset.ar || el.textContent);
+            } else {
+                // لو فيه لينك، نغير الـ span بس مش الـ a
+                if (lang === 'en' && el.dataset.en) {
+                    el.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) node.textContent = el.dataset.en;
+                    });
+                } else if (lang === 'ar' && el.dataset.ar) {
+                    el.childNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) node.textContent = el.dataset.ar;
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+
+{% endblock %} 

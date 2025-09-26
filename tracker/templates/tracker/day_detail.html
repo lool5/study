@@ -1,0 +1,297 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}تفاصيل اليوم - {{ day.date|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+<!-- إضافة مكتبة Prism.js وCSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-dark.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<style>
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body {
+    background: linear-gradient(135deg, #1e3a8a, #6b7280);
+    font-family: 'Tajawal', sans-serif;
+}
+.code-textarea, .note-textarea {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.2rem;
+    width: 100%;
+    min-height: 200px;
+}
+pre {
+    font-size: 1.2rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.code-input {
+    font-family: 'Source Code Pro', 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    direction: ltr;
+    resize: vertical;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #2d2d2d;
+    color: #fff;
+}
+.code-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+pre.prism-code {
+    background-color: #2d2d2d;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+.hours-summary {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+.stars-display {
+    font-size: 1.5rem;
+    color: gold;
+}
+</style>
+
+<div class="container-fluid py-5">
+    <h2 class="text-center mb-4 text-success">{{ day.date|date:"l, d F Y" }} ({{ day.star|yesno:"★ كامل, يوم عادي" }})</h2>
+    
+    <!-- عرض إجمالي الساعات -->
+    <div class="hours-summary text-center text-white">
+        <p>ساعات السيبر سكيورتي: {{ day.cyber_hours }} ساعة</p>
+        <p>ساعات الإنجليزي: {{ day.english_hours }} ساعة</p>
+        <p>إجمالي الساعات اليوم: {{ day.cyber_hours|add:day.english_hours }} ساعة</p>
+    </div>
+    
+    <div class="card glass-card p-4 shadow-lg">
+        <!-- ساعات dropdown -->
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-white">سايبر سكيورتي:</label>
+                    <select name="cyber_hours" class="form-select">
+                        {% for opt in cyber_options %}
+                        <option value="{{ opt }}" {% if opt == day.cyber_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-white">إنجليزي:</label>
+                    <select name="english_hours" class="form-select">
+                        {% for opt in english_options %}
+                        <option value="{{ opt }}" {% if opt == day.english_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">💾 حفظ الساعات</button>
+        </form>
+
+        <!-- إضافة الكود لوحده -->
+        <hr class="my-4">
+        <h4 class="text-primary">➕ إضافة كود</h4>
+        <form method="POST" class="row g-3">
+            {% csrf_token %}
+            <div class="col-12">
+                <label class="form-label text-white">عنوان الكود:</label>
+                <input type="text" name="code_title" class="form-control" required>
+                <label class="form-label text-white">الكود:</label>
+                <textarea name="code_content" class="form-control code-input language-python" rows="6" placeholder="Paste your code here..." spellcheck="false"></textarea>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" name="add_code" class="btn btn-primary">📤 إضافة الكود</button>
+            </div>
+        </form>
+
+        <!-- إضافة الصورة لوحدها -->
+        <hr class="my-4">
+        <h4 class="text-primary">➕ إضافة صورة</h4>
+        <form method="POST" enctype="multipart/form-data" class="row g-3">
+            {% csrf_token %}
+            <div class="col-12">
+                <label class="form-label text-white">عنوان الصورة:</label>
+                <input type="text" name="image_title" class="form-control" required>
+                <label class="form-label text-white">الصورة:</label>
+                <input type="file" name="image_file" class="form-control" accept="image/*" required>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" name="add_image" class="btn btn-primary">📤 إضافة الصورة</button>
+            </div>
+        </form>
+
+        <!-- إضافة المذكرة لوحدها -->
+        <hr class="my-4">
+        <h4 class="text-primary">➕ إضافة مذكرة</h4>
+        <form method="POST" class="row g-3">
+            {% csrf_token %}
+            <div class="col-12">
+                <label class="form-label text-white">عنوان المذكرة:</label>
+                <input type="text" name="note_title" class="form-control" required>
+                <label class="form-label text-white">المذكرة:</label>
+                <textarea name="note_content" class="form-control note-textarea" rows="4" placeholder="اكتب مذكراتك هنا..." required></textarea>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" name="add_note" class="btn btn-primary">📤 إضافة المذكرة</button>
+            </div>
+        </form>
+
+        <!-- English Notes خاصة (مذكرة إنجليزي لوحدها) -->
+        <hr class="my-4">
+        <h4 class="text-info">🌍 إضافة مذكرة إنجليزي</h4>
+        <form method="POST" class="row g-3 mt-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label text-white">عنوان (Title):</label>
+                <input type="text" name="english_title" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-white">المحتوى (Content):</label>
+                <textarea name="english_content" class="form-control note-textarea" rows="4" placeholder="Write English notes here..." required></textarea>
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" name="add_english_note" class="btn btn-outline-info">📝 إضافة مذكرة إنجليزي</button>
+            </div>
+        </form>
+
+        <!-- عرض التفاصيل الكاملة -->
+        <hr class="my-4">
+        <h4 class="text-secondary">📋 التفاصيل الكاملة لليوم</h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <h6 class="text-primary">💻 الأكواد:</h6>
+                {% for code in day.codes.all %}
+                <div class="card mb-2">
+                    <div class="card-header bg-light">{{ code.title }}</div>
+                    <pre class="card-body m-0 p-3 prism-code"><code class="language-python">{{ code.content|escape }}</code></pre>
+                    <div class="card-footer p-2">
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_code" value="{{ code.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                        <button class="btn btn-primary btn-sm" onclick="openViewModal('{{ code.content|escapejs }}', '{{ code.title|escapejs }}', 'كود')">عرض</button>
+                        <a href="{% url 'edit_code' code.id %}" class="btn btn-warning btn-sm">تعديل</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">لا أكواد مضافة.</p>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-success">📸 الصور:</h6>
+                {% for image in day.images.all %}
+                <div class="card mb-2">
+                    <img src="{{ image.file.url }}" class="card-img-top rounded" alt="{{ image.title }}" style="height: 150px; object-fit: cover; cursor: pointer;" onclick="openViewModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">
+                    <div class="card-body p-2">
+                        <h6 class="card-title small">{{ image.title }}</h6>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_image" value="{{ image.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                        <button class="btn btn-primary btn-sm" onclick="openViewModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">عرض</button>
+                        <a href="{% url 'edit_image' image.id %}" class="btn btn-warning btn-sm">تعديل</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">لا صور مضافة.</p>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-warning">📝 المذكرات:</h6>
+                {% for note in day.notes.all %}
+                <div class="card mb-2">
+                    <div class="card-header bg-light">{{ note.title }}</div>
+                    <div class="card-body p-3">
+                        <p class="note-textarea">{{ note.content|truncatewords:20 }}</p>
+                        <button class="btn btn-primary btn-sm" onclick="openViewModal('{{ note.content|escapejs }}', '{{ note.title|escapejs }}', 'note')">عرض</button>
+                        <a href="{% url 'edit_note' note.id %}" class="btn btn-warning btn-sm">تعديل</a>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_note" value="{{ note.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">لا مذكرات مضافة.</p>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-info">🌍 English Notes:</h6>
+                {% for enote in day.english_notes.all %}
+                <div class="card mb-2 border-info">
+                    <div class="card-header bg-info text-white">{{ enote.title }}</div>
+                    <div class="card-body p-3">
+                        <p class="note-textarea">{{ enote.content|truncatewords:20 }}</p>
+                        <button class="btn btn-primary btn-sm" onclick="openViewModal('{{ enote.content|escapejs }}', '{{ enote.title|escapejs }}', 'english_note')">عرض</button>
+                        <a href="{% url 'edit_english_note' enote.id %}" class="btn btn-warning btn-sm">تعديل</a>
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_english_note" value="{{ enote.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No English notes added.</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- عرض النجوم -->
+        {% if day.star %}
+            <div class="alert alert-success text-center mt-4 stars-display">
+                <i class="fas fa-star"></i> لقد حصلت على 3 نجوم! ⭐⭐⭐
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal لعرض التفاصيل -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewModalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewModalContent"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    Prism.highlightAll(); // تلوين الأكواد
+});
+
+function openViewModal(content, title, type) {
+    const modalTitle = document.getElementById('viewModalTitle');
+    const modalContent = document.getElementById('viewModalContent');
+    modalTitle.textContent = title;
+    if (type === 'image') {
+        modalContent.innerHTML = `<img src="${content}" class="img-fluid" style="max-width: 100%;">`;
+    } else if (type === 'كود') {
+        modalContent.innerHTML = `<pre class="prism-code"><code class="language-python">${content}</code></pre>`;
+        Prism.highlightAll();
+    } else {
+        modalContent.innerHTML = `<pre class="prism-code"><code class="language-markup">${content}</code></pre>`;
+        Prism.highlightAll();
+    }
+    new bootstrap.Modal(document.getElementById('viewModal')).show();
+}
+</script>
+
+{% endblock %}

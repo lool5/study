@@ -1,0 +1,17 @@
+{% extends 'tracker/base.html' %}
+{% block title %}تعديل المذكرة{% endblock %}
+{% block content %}
+<h1>تعديل المذكرة</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="title" class="form-label">العنوان</label>
+        <input type="text" class="form-control" id="title" name="title" value="{{ note.title }}">
+    </div>
+    <div class="mb-3">
+        <label for="content" class="form-label">المحتوى</label>
+        <textarea class="form-control" id="content" name="content">{{ note.content }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">حفظ</button>
+</form>
+{% endblock %}

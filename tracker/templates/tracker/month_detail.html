@@ -1,0 +1,65 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}تفاصيل الشهر - {{ month.name }}{% endblock %}
+
+{% block content %}
+<style>
+.day-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+.day-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+.day-item .stars {
+    color: gold;
+    font-size: 1.2rem;
+}
+.day-item .hours {
+    font-size: 0.9rem;
+    color: #d1d5db;
+}
+</style>
+
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-primary">📅 {{ month.name }} ({{ month.stars }} نجمة إجمالي)</h2>
+    <div class="row justify-content-center">
+        {% for week in weeks %}
+        <div class="col-md-3 mb-4">
+            <div class="card p-3 text-center {% if week.stars > 0 %}border-warning{% endif %}">
+                <h5 class="card-title">أسبوع {{ week.number }} ({{ week.stars }} نجمة)</h5>
+                <!-- قائمة الأيام -->
+                <div class="day-list mt-3">
+                    {% for day in week.day_set.all|dictsort:"date" %}
+                    {% if day.cyber_hours > 0 or day.english_hours > 0 %}
+                    <div class="day-item">
+                        <a href="{% url 'day_detail' day.id %}" class="text-decoration-none">
+                            <p class="mb-1">{{ day.date|date:"d/m/Y" }}</p>
+                            <p class="hours mb-1">إجمالي الساعات: {{ day.cyber_hours|add:day.english_hours }} ساعة</p>
+                            <p class="stars mb-0">
+                                {% if day.star %}
+                                    ⭐⭐⭐ (3 نجوم)
+                                {% else %}
+                                    لا نجوم
+                                {% endif %}
+                            </p>
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <p class="text-muted">لا أيام مدروسة في هذا الأسبوع.</p>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'week_detail' week.id %}" class="btn btn-custom mt-3">عرض الأسبوع</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-muted">لا توجد أسابيع في هذا الشهر.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
