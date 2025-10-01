@@ -1,24 +1,126 @@
 {% extends 'tracker/base.html' %}
 
-{% block title %}تعديل الكود - {{ code.title }}{% endblock %}
+{% block title %}Edit Code - {{ code.title }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="text-center mb-4 text-white">تعديل الكود: {{ code.title }}</h2>
+<!-- إضافة مكتبة Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #3b82f6;
+        --secondary-color: #10b981;
+        --accent-color: #f59e0b;
+        --danger-color: #ef4444;
+        --dark-bg: #0f172a;
+        --card-bg: rgba(31, 41, 55, 0.7);
+        --border-color: rgba(255, 255, 255, 0.15);
+        --text-light: #f3f4f6;
+        --text-muted: #9ca3af;
+        --code-bg: #1e1e1e;
+    }
+
+    body {
+        background: linear-gradient(135deg, #1e40af, #0f172a);
+        font-family: 'Tajawal', sans-serif;
+        color: var(--text-light);
+        line-height: 1.6;
+        direction: ltr;
+    }
+
+    .glass-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .form-control, textarea.form-control {
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.85rem;
+        background-color: #1e293b;
+        color: var(--text-light);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 0.4rem;
+        transition: border-color 0.3s, box-shadow 0.3s;
+        direction: ltr;
+        text-align: left;
+    }
+    .form-control:focus, textarea.form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+        direction: ltr;
+        text-align: left;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+    .btn-primary:hover {
+        background-color: #2563eb;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background-color: var(--text-muted);
+        border-color: var(--text-muted);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+    .btn-secondary:hover {
+        background-color: #6b7280;
+        transform: translateY(-2px);
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        direction: ltr;
+        text-align: left;
+    }
+</style>
+
+<div class="container py-5" dir="ltr">
+    <h2 class="mb-4 text-white"><i class="fas fa-code me-2"></i>Edit Code: {{ code.title }}</h2>
     <div class="card glass-card p-4">
         <form method="POST">
             {% csrf_token %}
             <div class="mb-3">
-                <label class="form-label text-white">عنوان الكود:</label>
-                <input type="text" name="code_title" class="form-control" value="{{ code.title }}" required>
+                <label class="form-label text-white" dir="ltr">Code Title:</label>
+                <input type="text" name="code_title" class="form-control" value="{{ code.title }}" required dir="ltr">
             </div>
             <div class="mb-3">
-                <label class="form-label text-white">الكود:</label>
-                <textarea name="code_content" class="form-control" rows="6" required>{{ code.content }}</textarea>
+                <label class="form-label text-white" dir="ltr">Code Content:</label>
+                <textarea name="code_content" class="form-control" rows="6" required dir="ltr">{{ code.content }}</textarea>
             </div>
-            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
-            <a href="{% url 'content' %}" class="btn btn-secondary">رجوع</a>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Changes</button>
+                <a href="{% url 'content' %}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Back</a>
+            </div>
         </form>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

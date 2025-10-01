@@ -316,10 +316,19 @@ def edit_image(request, image_id):
 def edit_note(request, note_id):
     note = get_object_or_404(Note, id=note_id)
     if request.method == 'POST':
-        note.title = request.POST.get('note_title')
-        note.content = request.POST.get('note_content')
-        note.save()
-        return redirect('content')
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        if title:  # التأكد من أن title ليس فارغًا
+            note.title = title
+            note.content = content
+            note.save()
+            return redirect('content')
+        else:
+            # إرجاع رسالة خطأ إذا كان العنوان فارغًا
+            return render(request, 'tracker/edit_note.html', {
+                'note': note,
+                'error': 'حقل العنوان مطلوب ولا يمكن أن يكون فارغًا'
+            })
     return render(request, 'tracker/edit_note.html', {'note': note})
 
 def edit_english_note(request, english_note_id):
