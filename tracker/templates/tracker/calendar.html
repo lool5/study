@@ -1,292 +1,623 @@
 {% extends 'tracker/base.html' %}
+{% load static %}
+
 
 {% block title %}التقويم السنوي - أكاديمية الشروق{% endblock %}
 
 {% block content %}
+<!-- إضافة مكتبات Bootstrap و Font Awesome و Google Fonts و FullCalendar -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales/ar.js"></script>
+
 <style>
-body {
-    background: linear-gradient(135deg, #1e3a8a, #6b21a8);
-    font-family: 'Tajawal', 'Noto Sans Arabic', sans-serif;
-    color: #fff;
-    line-height: 1.6;
-}
+    :root {
+        --primary-color: #3b82f6;
+        --secondary-color: #10b981;
+        --accent-color: #f59e0b;
+        --danger-color: #ef4444;
+        --dark-bg: #0f172a;
+        --card-bg: rgba(31, 41, 55, 0.7);
+        --border-color: rgba(255, 255, 255, 0.15);
+        --text-light: #f3f4f6;
+        --text-muted: #9ca3af;
+    }
 
-/* الكارد */
-.glass-card {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-    padding: 2rem;
-}
+    body {
+        background: linear-gradient(135deg, #1e40af, #0f172a);
+        font-family: 'Tajawal', sans-serif;
+        color: var(--text-light);
+        line-height: 1.5;
+        direction: rtl;
+        position: relative;
+        overflow-x: hidden;
+    }
 
-/* التقويم */
-.calendar-container {
-    width: 100%;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-}
+    .glass-card {
+        background: var(--card-bg);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        padding: 0.75rem;
+    }
 
-/* الهيدر */
-.hero-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #f1f5f9;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
+    .hero-section {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
 
-.hero-subtitle {
-    font-size: 1.2rem;
-    color: #e2e8f0;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto;
-}
+    .hero-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-light);
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
 
-/* التقويم نفسه */
-.fc {
-    direction: rtl;
-    font-size: 1rem;
-}
+    .hero-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        opacity: 0.9;
+        max-width: 95%;
+        margin: 0 auto;
+    }
 
-.fc .fc-multimonth-title {
-    color: #f1f5f9;
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 1rem;
-}
+    .calendar-container {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0.5rem;
+        background: var(--card-bg);
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
 
-/* تخطيط الخانات */
-.fc .fc-daygrid-day {
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 0;
-    background: rgba(255, 255, 255, 0.05);
-    overflow: hidden;
-}
+    .month-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+    }
 
-/* رقم اليوم */
-.fc .fc-daygrid-day-number {
-    color: #000 !important;
-    font-size: 1rem;
-    font-weight: 600;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    text-align: center;
-    margin: 4px auto;
-    display: block;
-}
+    .month-nav button {
+        background-color: var(--primary-color);
+        border: none;
+        color: var(--text-light);
+        font-family: 'Tajawal', sans-serif;
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        transition: background-color 0.3s, transform 0.2s;
+    }
 
-/* اليوم الحالي */
-.fc .fc-day-today {
-    background: rgba(250, 204, 21, 0.25) !important;
-    border: 2px solid #facc15 !important;
-}
+    .month-nav button:hover {
+        background-color: #2563eb;
+        transform: translateY(-2px);
+    }
 
-/* الأحداث */
-.fc .fc-daygrid-event {
-    border-radius: 10px;
-    padding: 4px 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(135deg, #22c55e, #4ade80) !important;
-    border: 1px solid #15803d !important;
-    color: #064e3b !important;
-    margin: 3px 0;
-    text-align: center;
-}
+    .month-nav .month-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
 
-/* الأحداث بدون نجمة */
-.fc .fc-daygrid-event.no-star {
-    background: linear-gradient(135deg, #ef4444, #f87171) !important;
-    border: 1px solid #b91c1c !important;
-    color: #fff !important;
-}
+    .fc {
+        direction: rtl;
+        font-size: 0.85rem;
+    }
 
-/* زرار More */
-.fc .fc-daygrid-more-link {
-    background: #22c55e !important;   /* أخضر */
-    color: #fff !important;           /* أبيض */
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-size: 0.9rem;                /* أكبر شوية */
-    font-weight: 700;                 /* تخين */
-    display: block;
-    text-align: center;
-    margin: 6px auto 0 auto;
-    width: fit-content;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-}
+    .fc .fc-toolbar {
+        display: none;
+    }
 
-/* الرقم بتاع اليوم اللي فيه More */
-.fc .fc-daygrid-day:has(.fc-daygrid-more-link) .fc-daygrid-day-number {
-    background: #22c55e !important;   /* أخضر */
-    color: #fff !important;           /* أبيض */
-    font-weight: 800;
-    box-shadow: 0 0 8px rgba(34,197,94,0.6);
-}
+    .fc .fc-daygrid-day {
+        border: 1px solid var(--border-color);
+        background: rgba(31, 41, 55, 0.6);
+        overflow: hidden;
+        padding: 1px;
+    }
 
+    .fc .fc-daygrid-day-number {
+        color: var(--text-light);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+        margin: 2px auto;
+        display: block;
+    }
 
-/* الـPopup بتاع التفاصيل */
-.fc-popover {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    border: none !important;
-    padding: 0.5rem;
-}
+    .fc .fc-day-today {
+        background: rgba(245, 158, 11, 0.3) !important;
+        border: 1px solid var(--accent-color) !important;
+    }
 
-.fc-popover-header {
-    background: #1e3a8a;
-    color: #fff;
-    font-weight: 700;
-    border-radius: 8px 8px 0 0;
-    padding: 6px 10px;
-}
+    .fc .fc-daygrid-event {
+        border-radius: 5px;
+        padding: 2px 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--secondary-color), #4ade80) !important;
+        border: 1px solid #15803d !important;
+        color: #064e3b !important;
+        margin: 1px 2px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-.fc-popover-body .fc-daygrid-event {
-    margin: 4px 0;
-    font-size: 0.9rem;
-}
+    .fc .fc-daygrid-event.no-star {
+        background: linear-gradient(135deg, var(--danger-color), #f87171) !important;
+        border: 1px solid #b91c1c !important;
+        color: var(--text-light) !important;
+    }
+
+    .fc .fc-daygrid-more-link {
+        background: var(--secondary-color) !important;
+        color: var(--text-light) !important;
+        border-radius: 5px;
+        padding: 2px 5px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: block;
+        text-align: center;
+        margin: 2px auto;
+        width: fit-content;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .fc .fc-daygrid-day:has(.fc-daygrid-more-link) .fc-daygrid-day-number {
+        background: var(--secondary-color) !important;
+        color: var(--text-light) !important;
+        font-weight: 700;
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+    }
+
+    .fc .fc-col-header-cell {
+        background: var(--dark-bg);
+        color: var(--text-light);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .fc .fc-col-header-cell a {
+        color: var(--text-light);
+        text-decoration: none;
+    }
+
+    .fc-popover {
+        background: var(--card-bg);
+        border-radius: 8px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        border: none !important;
+        padding: 0.4rem;
+    }
+
+    .fc-popover-header {
+        background: var(--dark-bg);
+        color: var(--text-light);
+        font-weight: 600;
+        border-radius: 6px 6px 0 0;
+        padding: 4px 6px;
+        font-size: 0.8rem;
+    }
+
+    .fc-popover-body .fc-daygrid-event {
+        margin: 2px 0;
+        font-size: 0.65rem;
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-light);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-title {
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .modal-body {
+        font-size: 0.8rem;
+        padding: 0.75rem;
+    }
+
+    .btn-close {
+        filter: invert(1);
+    }
+
+    .btn-danger {
+        background-color: var(--danger-color);
+        border-color: var(--danger-color);
+        font-family: 'Tajawal', sans-serif;
+        color: var(--text-light);
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .btn-danger:hover {
+        background-color: #b91c1c;
+    }
+
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+
+    .day-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+    }
+
+    .day-details .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .day-details .detail-item i {
+        color: var(--accent-color);
+        font-size: 1rem;
+    }
+
+    .day-details .detail-item span {
+        color: var(--text-light);
+    }
+
+    .no-events {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    /* تحسينات للشاشات الصغيرة */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 1.4rem;
+        }
+
+        .hero-subtitle {
+            font-size: 0.8rem;
+            max-width: 98%;
+        }
+
+        .calendar-container {
+            padding: 0.3rem;
+            max-width: 100%;
+        }
+
+        .month-nav button {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+        }
+
+        .month-nav .month-title {
+            font-size: 0.9rem;
+        }
+
+        .fc {
+            font-size: 0.8rem;
+        }
+
+        .fc .fc-daygrid-day {
+            padding: 0.5px;
+        }
+
+        .fc .fc-daygrid-day-number {
+            font-size: 0.7rem;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            margin: 1px auto;
+        }
+
+        .fc .fc-daygrid-event {
+            font-size: 0.6rem;
+            padding: 1px 3px;
+            margin: 0.5px 1px;
+        }
+
+        .fc .fc-daygrid-more-link {
+            font-size: 0.6rem;
+            padding: 1px 4px;
+            margin: 1px auto;
+        }
+
+        .fc .fc-col-header-cell {
+            font-size: 0.7rem;
+            padding: 1px;
+        }
+
+        .modal-dialog {
+            margin: 0.3rem;
+            max-width: 95%;
+        }
+
+        .modal-body {
+            padding: 0.5rem;
+        }
+
+        .modal-title {
+            font-size: 0.9rem;
+        }
+
+        .day-details .detail-item {
+            font-size: 0.8rem;
+        }
+
+        .day-details .detail-item i {
+            font-size: 0.9rem;
+        }
+
+        .no-events {
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .fc {
+            font-size: 0.75rem;
+        }
+
+        .fc .fc-daygrid-day-number {
+            font-size: 0.65rem;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+        }
+
+        .fc .fc-daygrid-event {
+            font-size: 0.55rem;
+            padding: 1px 2px;
+        }
+
+        .fc .fc-daygrid-more-link {
+            font-size: 0.55rem;
+            padding: 1px 3px;
+        }
+
+        .fc .fc-col-header-cell {
+            font-size: 0.65rem;
+            padding: 1px;
+        }
+
+        .month-nav button {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+        }
+
+        .month-nav .month-title {
+            font-size: 0.8rem;
+        }
+
+        .day-details .detail-item {
+            font-size: 0.7rem;
+        }
+
+        .day-details .detail-item i {
+            font-size: 0.8rem;
+        }
+
+        .no-events {
+            font-size: 0.7rem;
+        }
+    }
 </style>
 
-
-<div class="container-fluid py-5 position-relative">
+<div class="container-fluid py-3 position-relative">
     <canvas class="particles" id="particleCanvas"></canvas>
 
     <div class="hero-section">
-        <h1 class="hero-title">🗓️ التقويم السنوي</h1>
+        <h1 class="hero-title"><i class="fas fa-calendar-alt me-2"></i>التقويم السنوي</h1>
         <p class="hero-subtitle">تابع تقدمك الدراسي مع عرض واضح للأيام المدروسة والنجوم المكتسبة</p>
     </div>
 
-    <div class="card glass-card mb-5">
-        <h3 class="text-center mb-4">📅 تقويم الدراسة</h3>
+    <div class="card glass-card mb-3">
+        <h3 class="text-center mb-2 text-white"><i class="fas fa-calendar me-2"></i>تقويم الدراسة</h3>
+        <div class="month-nav">
+            <button id="prevMonth" class="btn"><i class="fas fa-chevron-right me-2"></i>الشهر السابق</button>
+            <span class="month-title" id="monthTitle">أكتوبر 2025</span>
+            <button id="nextMonth" class="btn"><i class="fas fa-chevron-left me-2"></i>الشهر التالي</button>
+        </div>
         <div class="calendar-container">
             <div id="calendar"></div>
         </div>
     </div>
 </div>
 
+<!-- تحميل مكتبات JavaScript -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script> -->
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
-    var events = JSON.parse('{{ events_json|safe }}');
+    // التحقق من تحميل Bootstrap
+    if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap JS failed to load from CDN. Attempting to load local fallback.');
+        document.write('<script src="{% static "js/bootstrap.bundle.min.js" %}"><\/script>');
+    } else {
+        console.log('Bootstrap JS loaded successfully from CDN.');
+    }
 
-    console.log('Events:', events);
+    var calendarEl = document.getElementById('calendar');
+    var events;
+    try {
+        events = JSON.parse('{{ events_json|safe }}');
+        console.log('Events loaded successfully:', events);
+    } catch (e) {
+        console.error('Error parsing events_json:', e);
+        events = [];
+    }
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'multiMonthYear',
-        multiMonthMaxColumns: 3,
-        initialDate: '2025-01-01',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'multiMonthYear,month'
-        },
+        initialView: 'dayGridMonth',
+        initialDate: '2025-10-01',
         events: events,
         editable: false,
         locale: 'ar',
         direction: 'rtl',
-        dayMaxEventRows: false,   // ❌ مفيش More Button
-        moreLinkClick: false,     // ❌ مفيش زرار مور
+        dayMaxEventRows: 2,
+        moreLinkClick: 'popover',
         eventDisplay: 'block',
-
-        // عند الضغط على رقم اليوم
+        headerToolbar: false,
         dateClick: function(info) {
-            // هات كل الأحداث اللي في اليوم ده
-            var todaysEvents = calendar.getEvents().filter(function(e) {
-                return e.startStr.startsWith(info.dateStr);
-            });
-
-            if (todaysEvents.length > 0) {
-                // نعرض التفاصيل في نافذة مودال أنيقة
-                let details = "<h3 style='margin-bottom:10px'>📅 أحداث اليوم</h3>";
-                todaysEvents.forEach(function(e) {
-                    details += `<div style="
-                        padding:8px;
-                        margin:6px 0;
-                        border-radius:8px;
-                        background:linear-gradient(135deg,#22c55e,#4ade80);
-                        color:#064e3b;
-                        font-weight:600;
-                        ">
-                        ${e.title}
-                    </div>`;
+            try {
+                var todaysEvents = calendar.getEvents().filter(function(e) {
+                    return e.startStr.startsWith(info.dateStr);
                 });
+                console.log('Clicked date:', info.dateStr, 'Events:', todaysEvents);
 
-                // اعمل مودال بسيط
-                let modal = document.createElement("div");
-                modal.innerHTML = `
-                    <div style="
-                        position:fixed;
-                        top:0;left:0;width:100%;height:100%;
-                        background:rgba(0,0,0,0.6);
-                        display:flex;align-items:center;justify-content:center;
-                        z-index:9999;
-                    ">
-                        <div style="
-                            background:#fff;
-                            color:#000;
-                            padding:20px;
-                            border-radius:12px;
-                            max-width:400px;
-                            width:90%;
-                            box-shadow:0 6px 20px rgba(0,0,0,0.4);
-                            text-align:right;
-                            font-family:'Tajawal', sans-serif;
-                        ">
-                            ${details}
-                            <button id="closeModal" style="
-                                margin-top:15px;
-                                background:#dc2626;
-                                color:#fff;
-                                border:none;
-                                padding:8px 12px;
-                                border-radius:8px;
-                                cursor:pointer;
-                            ">إغلاق</button>
+                var modalEl = document.createElement('div');
+                modalEl.innerHTML = `
+                    <div class="modal fade" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                ...
+                            </div>
                         </div>
                     </div>
                 `;
-                document.body.appendChild(modal);
+                document.body.appendChild(modalEl);
 
-                document.getElementById("closeModal").onclick = function() {
-                    modal.remove();
-                };
+                var modal = new bootstrap.Modal(modalEl.querySelector('.modal'));
+                modal.show();
+
+                modalEl.querySelector('.modal').addEventListener('hidden.bs.modal', function () {
+                    modalEl.remove();
+                });
+
+                var details = '';
+                if (todaysEvents.length > 0) {
+                    // حساب إجمالي الساعات والنجوم
+                    var totalHours = todaysEvents.reduce(function(sum, e) {
+                        return sum + (e.extendedProps && e.extendedProps.hours ? parseFloat(e.extendedProps.hours) || 0 : 0);
+                    }, 0);
+                    var totalStars = todaysEvents.reduce(function(sum, e) {
+                        return sum + (e.extendedProps && e.extendedProps.star ? parseInt(e.extendedProps.star) || 0 : 0);
+                    }, 0);
+
+                    details += `
+                        <div class="day-details">
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>ساعات المذاكرة: ${totalHours.toFixed(1)} ساعة</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-star"></i>
+                                <span>النجوم المكتسبة: ${totalStars} نجمة</span>
+                            </div>
+                        </div>
+                        <h3 class="mb-2"><i class="fas fa-calendar-day me-2"></i>أحداث اليوم</h3>
+                    `;
+                    todaysEvents.forEach(function(e) {
+                        var eventClass = e.extendedProps && e.extendedProps.star ? '' : 'no-star';
+                        details += `<div class="fc-daygrid-event ${eventClass}" style="padding:6px; margin:4px 0; border-radius:6px; font-weight:600;">${e.title}</div>`;
+                    });
+                } else {
+                    details = `<div class="no-events">لا توجد أحداث لهذا اليوم</div>`;
+                }
+
+                modal._element.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">تفاصيل اليوم (${info.dateStr})</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                            </div>
+                            <div class="modal-body">${details}</div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-times me-2"></i>إغلاق</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal._element);
+                modal.show();
+
+                modal._element.addEventListener('hidden.bs.modal', function() {
+                    modal._element.remove();
+                });
+            } catch (e) {
+                console.error('Error in dateClick:', e);
+                alert('حدث خطأ أثناء عرض تفاصيل اليوم. يرجى التحقق من وحدة التحكم لمزيد من التفاصيل.');
+            }
+        },
+        datesSet: function(info) {
+            try {
+                var monthTitle = document.getElementById('monthTitle');
+                var date = new Date(info.view.currentStart);
+                var monthName = date.toLocaleString('ar', { month: 'long', year: 'numeric' });
+                monthTitle.textContent = monthName;
+            } catch (e) {
+                console.error('Error in datesSet:', e);
             }
         }
     });
 
-    calendar.render();
+    // أزرار التنقل المخصصة
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        calendar.prev();
+    });
 
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        calendar.next();
+    });
 
-    calendar.render();
+    try {
+        calendar.render();
+    } catch (e) {
+        console.error('Error rendering calendar:', e);
+    }
 
     particlesJS('particleCanvas', {
         particles: {
-            number: { value: 100, density: { enable: true, value_area: 1000 } },
+            number: { value: 30, density: { enable: true, value_area: 600 } },
             color: { value: ['#00ffcc', '#ff99cc', '#99ccff'] },
             shape: { type: 'circle' },
-            opacity: { value: 0.6, random: true },
-            size: { value: 4, random: true },
+            opacity: { value: 0.3, random: true },
+            size: { value: 2, random: true },
             line_linked: { enable: false },
-            move: { enable: true, speed: 3, direction: 'none', random: true }
+            move: { enable: true, speed: 1, direction: 'none', random: true }
         },
         interactivity: {
             detect_on: 'canvas',
-            events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' } },
-            modes: { grab: { distance: 150, line_linked: { opacity: 0.5 } }, push: { particles_nb: 4 } }
+            events: { onhover: { enable: false }, onclick: { enable: false } },
+            modes: { grab: { distance: 100, line_linked: { opacity: 0.3 } }, push: { particles_nb: 2 } }
         }
     });
 });

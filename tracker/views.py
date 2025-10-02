@@ -370,14 +370,18 @@ def calendar(request):
         if day.cyber_hours > 0 or day.english_hours > 0:  # الأيام المدروسة فقط
             total_hours = day.cyber_hours + day.english_hours
             events.append({
-                'title': f"{total_hours:.1f} ساعات | {'⭐' if day.star else '❌'}",
+                'title': f"{total_hours:.1f} ساعات",
                 'start': day.date.isoformat(),
                 'url': reverse('day_detail', args=[day.id]),
                 'backgroundColor': '#28a745' if day.star else '#dc3545',
                 'borderColor': 'darkgreen' if day.star else 'darkred',
+                'extendedProps': {
+                    'hours': float(total_hours),
+                    'star': 3 if day.star else 0,
+                }
             })
     
     context = {
-        'events_json': json.dumps(events)
+        'events_json': json.dumps(events, ensure_ascii=False)  # مهم عشان العربي
     }
     return render(request, 'tracker/calendar.html', context)
