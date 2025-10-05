@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+{% extends 'tracker/base.html' %}
+{% block title %}الصفحة الشخصية{% endblock %}
+{% block content %}
+<div class="hero-section">
+    <h1 class="hero-title">الصفحة الشخصية</h1>
+    <p class="hero-subtitle">مرحبًا، {{ user.username }}! هنا بياناتك وإحصائياتك</p>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">بيانات المستخدم</h2>
+    </div>
+    <div class="card-body">
+        <p><strong>اسم المستخدم:</strong> {{ user.username }}</p>
+        <p><strong>البريد الإلكتروني:</strong> {{ user.email|default:"غير محدد" }}</p>
+        <p><strong>تاريخ الانضمام:</strong> {{ user.date_joined|date:"d/m/Y" }}</p>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">إحصائيات الدراسة</h2>
+    </div>
+    <div class="card-body">
+        <p><strong>عدد الأيام المدروسة:</strong> {{ studied_days_count }}</p>
+        <p><strong>إجمالي الساعات الدراسية:</strong> {{ total_study_hours }} ساعة</p>
+        <p><strong>إجمالي النجوم:</strong> {{ total_stars }} <i class="fas fa-star" style="color: var(--star-color);"></i></p>
+    </div>
+</div>
+<div class="text-center">
+    <a href="{% url 'home' %}" class="btn-custom">العودة إلى الصفحة الرئيسية</a>
+</div>
+{% endblock %}

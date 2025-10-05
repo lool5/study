@@ -5,171 +5,288 @@
 {% block content %}
 <!-- إضافة مكتبات Prism.js و Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-vs.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 
 <style>
     :root {
-        --primary-color: #3b82f6;
-        --secondary-color: #10b981;
-        --accent-color: #f59e0b;
-        --danger-color: #ef4444;
-        --dark-bg: #0f172a;
-        --card-bg: rgba(31, 41, 55, 0.7);
-        --border-color: rgba(255, 255, 255, 0.15);
-        --text-light: #f3f4f6;
-        --text-muted: #9ca3af;
+        --primary: #8b5cf6;
+        --primary-dark: #7c3aed;
+        --secondary: #06b6d4;
+        --accent: #f59e0b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --dark: #0f0f23;
+        --darker: #0a0a1a;
+        --light: #f8fafc;
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.15);
+        --text-light: #f1f5f9;
+        --text-muted: #94a3b8;
         --code-bg: #1e1e1e;
     }
 
     body {
-        background: linear-gradient(135deg, #1e40af, #0f172a);
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
         font-family: 'Tajawal', sans-serif;
         color: var(--text-light);
         line-height: 1.6;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+        z-index: -1;
+        animation: backgroundShift 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes backgroundShift {
+        0% { transform: scale(1) rotate(0deg); }
+        100% { transform: scale(1.1) rotate(1deg); }
+    }
+
+    @keyframes slideInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
     }
 
     .glass-card {
-        background: var(--card-bg);
-        border-radius: 12px;
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        padding: 1.5rem;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            0 0 80px rgba(139, 92, 246, 0.1);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: slideInUp 0.8s ease;
+    }
+
+    .glass-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: 0.5s;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 
+            0 30px 60px rgba(0, 0, 0, 0.4),
+            0 0 100px rgba(139, 92, 246, 0.2);
+    }
+
+    .glass-card:hover::before {
+        left: 100%;
     }
 
     .item-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         display: flex;
         flex-direction: column;
-        min-height: 140px;
-        max-width: 250px;
+        min-height: 180px;
+        max-width: 300px;
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.6s ease;
     }
+
     .item-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 15px 35px rgba(0, 0, 0, 0.3),
+            0 0 40px rgba(139, 92, 246, 0.2);
+        border-color: var(--primary);
     }
+
     .item-card-header {
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid var(--border-color);
-        font-weight: 600;
-        font-size: 0.85rem;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid var(--glass-border);
+        font-weight: 700;
+        font-size: 0.9rem;
         color: var(--text-light);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
     }
+
     .item-card-body {
-        padding: 0.5rem;
+        padding: 1rem;
         flex-grow: 1;
         cursor: pointer;
-        min-height: 60px;
+        min-height: 80px;
         max-height: 150px;
         overflow: hidden;
+        transition: all 0.3s ease;
     }
+
+    .item-card-body:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
     .item-card-footer {
-        padding: 0.5rem 0.75rem;
-        background: rgba(0, 0, 0, 0.2);
-        border-top: 1px solid var(--border-color);
+        padding: 0.7rem 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-top: 1px solid var(--glass-border);
         display: flex;
         justify-content: flex-end;
-        gap: 0.5rem;
+        gap: 0.8rem;
+        backdrop-filter: blur(10px);
     }
+
     .icon-btn {
         background: transparent;
         border: none;
         color: var(--text-muted);
-        font-size: 0.85rem;
-        transition: color 0.2s ease;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 0.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
     }
-    .icon-btn:hover { color: var(--primary-color); }
-    .icon-btn.delete:hover { color: var(--danger-color); }
-    .icon-btn.edit:hover { color: var(--accent-color); }
+
+    .icon-btn:hover { 
+        color: var(--primary); 
+        background: rgba(139, 92, 246, 0.15);
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .icon-btn.delete:hover { 
+        color: var(--danger); 
+        background: rgba(239, 68, 68, 0.15);
+        transform: scale(1.1) rotate(-5deg);
+    }
+    
+    .icon-btn.edit:hover { 
+        color: var(--accent); 
+        background: rgba(245, 158, 11, 0.15);
+        transform: scale(1.1) rotate(5deg);
+    }
 
     .note-content-preview {
         font-family: 'Tajawal', sans-serif;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: var(--text-muted);
         white-space: pre-wrap;
         word-wrap: break-word;
-        line-height: 1.4;
+        line-height: 1.5;
         direction: ltr;
         text-align: left;
         overflow: hidden;
-        max-height: 60px;
+        max-height: 80px;
     }
 
     .english-note-preview {
         font-family: 'Tajawal', sans-serif;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: var(--text-muted);
         white-space: pre-wrap;
         word-wrap: break-word;
-        line-height: 1.4;
+        line-height: 1.5;
         direction: ltr;
         text-align: left;
         overflow: hidden;
-        max-height: 60px;
+        max-height: 80px;
     }
 
     .form-control, .form-select {
         font-family: 'Tajawal', sans-serif;
-        font-size: 0.85rem;
-        background-color: #1e293b;
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
         color: var(--text-light);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 0.4rem;
-        transition: border-color 0.3s, box-shadow 0.3s;
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        transition: all 0.3s ease;
         max-width: 100%;
     }
+
     .form-control:focus, .form-select:focus {
         outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 
+            0 0 0 3px rgba(139, 92, 246, 0.2),
+            0 8px 25px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
     }
 
     .note-textarea {
-        min-height: 100px !important;
-        max-height: 100px;
-        height: 100px;
+        min-height: 120px !important;
+        max-height: 120px;
+        height: 120px;
         resize: none;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         direction: ltr;
         text-align: left;
     }
 
     .english-textarea {
-        min-height: 100px !important;
-        max-height: 100px;
-        height: 100px;
+        min-height: 120px !important;
+        max-height: 120px;
+        height: 120px;
         resize: none;
         direction: ltr;
         text-align: left;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .code-input {
         font-family: 'Fira Code', 'Consolas', monospace;
         direction: ltr;
         text-align: left;
-        min-height: 120px;
-        font-size: 0.9rem;
+        min-height: 150px;
+        font-size: 0.95rem;
         background: var(--code-bg);
         color: #d4d4d4;
-        padding: 0.75rem;
+        padding: 1rem;
         tab-size: 4;
-        border-radius: 6px;
+        border-radius: 10px;
         border: 1px solid #3c3c3c;
+        transition: all 0.3s ease;
+    }
+
+    .code-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
     }
 
     pre[class*="language-"] {
         background: var(--code-bg);
-        padding: 1rem;
-        border-radius: 6px;
+        padding: 1.5rem;
+        border-radius: 12px;
         margin: 0;
         font-family: 'Fira Code', 'Consolas', monospace;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         max-height: 80vh;
         overflow-y: auto;
         overflow-x: auto;
@@ -177,21 +294,26 @@
         text-align: left;
         white-space: pre-wrap;
         border: 1px solid #3c3c3c;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
 
     .modal-content {
-        background: #1e293b;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background: rgba(30, 30, 60, 0.95);
+        backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.5),
+            0 0 80px rgba(139, 92, 246, 0.2);
     }
 
     .modal-dialog {
-        max-width: 600px;
+        max-width: 700px;
     }
 
     .modal-dialog.code-modal {
-        max-width: 90vw;
-        max-height: 90vh;
+        max-width: 95vw;
+        max-height: 95vh;
     }
 
     .modal-dialog.image-modal {
@@ -217,147 +339,402 @@
         object-fit: contain;
         display: block;
         margin: 0 auto;
+        border-radius: 10px;
     }
 
     .note-content {
         width: 100%;
         max-width: 600px;
         font-family: 'Tajawal', sans-serif;
-        font-size: 1rem;
+        font-size: 1.1rem;
         color: var(--text-light);
         white-space: pre-wrap;
-        line-height: 1.6;
-        padding: 1rem;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        line-height: 1.8;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
         margin: 0 auto;
         direction: ltr;
         text-align: left;
     }
 
     .language-btn {
-        font-size: 0.85rem;
-        padding: 0.3rem 0.6rem;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
         margin: 0.2rem;
-        border-radius: 5px;
-        background: var(--card-bg);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
         color: var(--text-light);
-        border: 1px solid var(--border-color);
-        transition: background 0.2s, color 0.2s;
+        border: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
     }
+
     .language-btn:hover {
-        background: var(--primary-color);
+        background: var(--primary);
         color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
     }
+
     .language-btn.active {
-        background: var(--primary-color);
+        background: var(--primary);
         color: white;
+        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
     }
 
     .accordion-button {
         background: rgba(55, 65, 81, 0.7);
+        backdrop-filter: blur(15px);
         color: var(--text-light);
-        font-weight: 500;
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 1rem 1.5rem;
+        border: 1px solid var(--glass-border);
+        border-radius: 12px !important;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
     }
+
     .accordion-button:not(.collapsed) {
-        background: var(--primary-color);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
         color: white;
+        box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
     }
+
     .accordion-body {
-        background: var(--card-bg);
-        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        padding: 1.5rem;
+        border: 1px solid var(--glass-border);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
     }
+
     .accordion-item {
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        margin-bottom: 0.5rem;
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        background: transparent;
     }
 
     .btn-primary, .btn-info {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.85rem;
-        border-radius: 6px;
+        padding: 0.7rem 1.5rem;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: none;
+        position: relative;
+        overflow: hidden;
     }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, var(--secondary) 0%, #0d9488 100%);
+        box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    }
+
     .btn-primary:hover, .btn-info:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 12px 30px rgba(139, 92, 246, 0.4);
     }
 
     .hours-summary p {
-        font-size: 0.9rem;
+        font-size: 1rem;
         margin-bottom: 0.5rem;
+        font-weight: 500;
     }
+
     .hours-summary .fw-bold {
-        color: var(--secondary-color);
+        color: var(--secondary);
+        font-weight: 700;
     }
 
     .image-preview {
         max-width: 100%;
-        object-fit: contain;
-        height: auto;
+        object-fit: cover;
+        height: 120px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .item-card:hover .image-preview {
+        transform: scale(1.05);
+    }
+
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: slideInUp 0.6s ease;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-subtitle {
+        font-size: 1.3rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .star-animation {
+        animation: glow 2s ease-in-out infinite;
+    }
+
+    /* Section Headers */
+    .section-header {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding: 0.8rem 1.2rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border-radius: 12px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* Accordion Category Styles */
+    .accordion-category {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        width: 100%;
+    }
+
+    .category-badge {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .accordion-button.code-category .category-badge {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+
+    .accordion-button.image-category .category-badge {
+        background: linear-gradient(135deg, var(--success) 0%, #22c55e 100%);
+    }
+
+    .accordion-button.note-category .category-badge {
+        background: linear-gradient(135deg, var(--accent) 0%, #f97316 100%);
+    }
+
+    .accordion-button.english-category .category-badge {
+        background: linear-gradient(135deg, var(--secondary) 0%, #0d9488 100%);
+    }
+
+    /* Code Preview Fix */
+    .code-preview {
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.75rem;
+        background: var(--code-bg);
+        color: #d4d4d4;
+        padding: 0.5rem;
+        border-radius: 6px;
+        max-height: 120px;
+        overflow-y: auto;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        direction: ltr;
+        text-align: left;
+        border: 1px solid #3c3c3c;
+    }
+
+    /* Code Modal Styling */
+    .code-modal-content {
+        background: #1e1e1e;
+        border-radius: 12px;
+        padding: 1.5rem;
+        max-height: 80vh;
+        overflow-y: auto;
+        overflow-x: auto;
+        direction: ltr;
+        text-align: left;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        white-space: pre;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border: 1px solid #3c3c3c;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .glass-card {
+            padding: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .item-card {
+            min-height: 160px;
+            max-width: 100%;
+        }
+
+        .modal-dialog {
+            margin: 1rem;
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+        }
+
+        .accordion-button {
+            font-size: 0.9rem;
+            padding: 0.8rem 1.2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .glass-card {
+            padding: 1rem;
+        }
+
+        .hero-title {
+            font-size: 1.8rem;
+        }
+
+        .form-control, .form-select {
+            padding: 0.6rem 0.8rem;
+        }
+
+        .btn-primary, .btn-info {
+            padding: 0.6rem 1.2rem;
+        }
     }
 </style>
 
 <div class="container py-4">
-    <div class="text-center mb-4">
-        <h2 class="text-white fw-bold display-6">{{ day.date|date:"l, d F Y" }}</h2>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">
+            <i class="fas fa-calendar-day"></i>
+            {{ day.date|date:"l, d F Y" }}
+        </h1>
         {% if day.star %}
-            <p class="text-warning fs-5 animate__animated animate__flash animate__infinite">★ يوم كامل ★</p>
+            <p class="hero-subtitle star-animation">
+                <i class="fas fa-star text-warning"></i>
+                ★ يوم متميز ★
+            </p>
         {% else %}
-            <p class="text-muted fs-5">يوم عادي</p>
+            <p class="hero-subtitle">تابع تقدمك التعليمي لهذا اليوم</p>
         {% endif %}
     </div>
     
-    <!-- عرض إجمالي الساعات -->
-    <div class="hours-summary text-center text-white mb-4 row">
-        <div class="col-md-4"><p>ساعات السيبر سكيورتي: <span class="fw-bold">{{ day.cyber_hours }}</span></p></div>
-        <div class="col-md-4"><p>ساعات الإنجليزي: <span class="fw-bold">{{ day.english_hours }}</span></p></div>
-        <div class="col-md-4"><p>الإجمالي: <span class="fw-bold text-success">{{ day.cyber_hours|add:day.english_hours }}</span> ساعة</p></div>
-    </div>
-    
-    <div class="card glass-card shadow-lg">
-        <!-- ساعات dropdown -->
-        <form method="POST" class="mb-3">
+    <!-- إحصائيات الساعات -->
+    <div class="glass-card mb-4">
+        <div class="hours-summary text-center row">
+            <div class="col-md-4">
+                <p><i class="fas fa-shield-alt text-primary me-2"></i>ساعات السيبر سكيورتي: <span class="fw-bold">{{ day.cyber_hours }}</span></p>
+            </div>
+            <div class="col-md-4">
+                <p><i class="fas fa-language text-info me-2"></i>ساعات الإنجليزي: <span class="fw-bold">{{ day.english_hours }}</span></p>
+            </div>
+            <div class="col-md-4">
+                <p><i class="fas fa-clock text-success me-2"></i>الإجمالي: <span class="fw-bold text-success">{{ day.cyber_hours|add:day.english_hours }}</span> ساعة</p>
+            </div>
+        </div>
+        
+        <!-- تحديث الساعات -->
+        <form method="POST" class="mt-3">
             {% csrf_token %}
-            <div class="row mb-2 g-2">
+            <div class="row g-3">
                 <div class="col-md-5">
-                    <label class="form-label fw-bold text-white">سايبر سكيورتي:</label>
+                    <label class="form-label fw-bold text-white"><i class="fas fa-shield-alt me-2"></i>سايبر سكيورتي:</label>
                     <select name="cyber_hours" class="form-select">
-                        {% for opt in cyber_options %}<option value="{{ opt }}" {% if opt == day.cyber_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>{% endfor %}
+                        {% for opt in cyber_options %}
+                        <option value="{{ opt }}" {% if opt == day.cyber_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-5">
-                    <label class="form-label fw-bold text-white">إنجليزي:</label>
+                    <label class="form-label fw-bold text-white"><i class="fas fa-language me-2"></i>إنجليزي:</label>
                     <select name="english_hours" class="form-select">
-                        {% for opt in english_options %}<option value="{{ opt }}" {% if opt == day.english_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>{% endfor %}
+                        {% for opt in english_options %}
+                        <option value="{{ opt }}" {% if opt == day.english_hours|floatformat:0 %}selected{% endif %}>{{ opt }} ساعة</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-save me-1"></i>حفظ</button>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>حفظ
+                    </button>
                 </div>
             </div>
         </form>
+    </div>
 
-        <hr class="border-secondary my-3">
+    <!-- إضافة المحتوى -->
+    <div class="glass-card mb-4">
+        <h4 class="section-header">
+            <i class="fas fa-plus-circle"></i>
+            إضافة محتوى جديد
+        </h4>
 
         <!-- Accordion for adding items -->
         <div class="accordion" id="addItemsAccordion">
             <!-- Add Code Form -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingCode">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCode" aria-expanded="false" aria-controls="collapseCode">
-                        ➕ إضافة كود
+                    <button class="accordion-button collapsed code-category" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCode" aria-expanded="false" aria-controls="collapseCode">
+                        <div class="accordion-category">
+                            <i class="fas fa-code"></i>
+                            <span>الكود البرمجي</span>
+                            <span class="category-badge ms-auto">أكواد</span>
+                        </div>
                     </button>
                 </h2>
                 <div id="collapseCode" class="accordion-collapse collapse" aria-labelledby="headingCode" data-bs-parent="#addItemsAccordion">
                     <div class="accordion-body">
                         <form method="POST">
                             {% csrf_token %}
-                            <div class="mb-2"><label class="form-label">عنوان الكود:</label><input type="text" name="code_title" class="form-control" required></div>
-                            <div class="mb-2"><label class="form-label">الكود:</label><textarea name="code_content" class="form-control code-input" rows="5" placeholder="اكتب الكود هنا..." spellcheck="false" required></textarea></div>
-                            <button type="submit" name="add_code" class="btn btn-primary"><i class="fas fa-upload me-1"></i>إضافة</button>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">عنوان الكود:</label>
+                                <input type="text" name="code_title" class="form-control" placeholder="أدخل عنوان الكود..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">الكود:</label>
+                                <textarea name="code_content" class="form-control code-input" rows="6" placeholder="الصق الكود البرمجي هنا..." spellcheck="false" required></textarea>
+                            </div>
+                            <button type="submit" name="add_code" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>إضافة الكود
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -366,17 +743,30 @@
             <!-- Add Image Form -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingImage">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImage" aria-expanded="false" aria-controls="collapseImage">
-                        🖼️ إضافة صورة
+                    <button class="accordion-button collapsed image-category" type="button" data-bs-toggle="collapse" data-bs-target="#collapseImage" aria-expanded="false" aria-controls="collapseImage">
+                        <div class="accordion-category">
+                            <i class="fas fa-image"></i>
+                            <span>الصور</span>
+                            <span class="category-badge ms-auto">صور</span>
+                        </div>
                     </button>
                 </h2>
                 <div id="collapseImage" class="accordion-collapse collapse" aria-labelledby="headingImage" data-bs-parent="#addItemsAccordion">
                     <div class="accordion-body">
                         <form method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <div class="mb-2"><label class="form-label">عنوان الصورة:</label><input type="text" name="image_title" class="form-control" required></div>
-                            <div class="mb-2"><label class="form-label">ملف الصورة:</label><input type="file" name="image_file" class="form-control" accept="image/*" required></div>
-                            <button type="submit" name="add_image" class="btn btn-primary"><i class="fas fa-upload me-1"></i>إضافة</button>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">عنوان الصورة:</label>
+                                <input type="text" name="image_title" class="form-control" placeholder="أدخل عنوان الصورة..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">ملف الصورة:</label>
+                                <input type="file" name="image_file" class="form-control" accept="image/*" required>
+                                <div class="form-text text-muted">يمكنك رفع الصور بصيغة JPG, PNG, GIF</div>
+                            </div>
+                            <button type="submit" name="add_image" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>رفع الصورة
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -385,25 +775,34 @@
             <!-- Add Note Form -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingNote">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNote" aria-expanded="false" aria-controls="collapseNote">
-                        📝 إضافة مذكرة
+                    <button class="accordion-button collapsed note-category" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNote" aria-expanded="false" aria-controls="collapseNote">
+                        <div class="accordion-category">
+                            <i class="fas fa-sticky-note"></i>
+                            <span>المذكرات العربية</span>
+                            <span class="category-badge ms-auto">عربي</span>
+                        </div>
                     </button>
                 </h2>
                 <div id="collapseNote" class="accordion-collapse collapse" aria-labelledby="headingNote" data-bs-parent="#addItemsAccordion">
                     <div class="accordion-body">
                         <form method="POST">
                             {% csrf_token %}
-                            <div class="mb-2"><label class="form-label">عنوان المذكرة:</label><input type="text" name="note_title" class="form-control" required></div>
-                            <div class="mb-2">
-                                <label class="form-label">المحتوى:</label>
-                                <div class="d-flex mb-2">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">عنوان المذكرة:</label>
+                                <input type="text" name="note_title" class="form-control" placeholder="أدخل عنوان المذكرة..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">المحتوى:</label>
+                                <div class="d-flex mb-3 gap-2">
                                     <button type="button" class="language-btn active" onclick="setNoteLanguage('arabic')">عربي</button>
                                     <button type="button" class="language-btn" onclick="setNoteLanguage('english')">إنجليزي</button>
                                     <button type="button" class="language-btn" onclick="setNoteLanguage('mixed')">مختلط</button>
                                 </div>
-                                <textarea name="note_content" id="note-textarea" class="form-control note-textarea" rows="4" placeholder="اكتب مذكراتك هنا..." required></textarea>
+                                <textarea name="note_content" id="note-textarea" class="form-control note-textarea" placeholder="اكتب مذكراتك هنا..." required></textarea>
                             </div>
-                            <button type="submit" name="add_note" class="btn btn-primary"><i class="fas fa-upload me-1"></i>إضافة</button>
+                            <button type="submit" name="add_note" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>إضافة المذكرة
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -412,103 +811,207 @@
             <!-- Add English Note Form -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingEnglishNote">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnglishNote" aria-expanded="false" aria-controls="collapseEnglishNote">
-                        🌍 إضافة مذكرة إنجليزي
+                    <button class="accordion-button collapsed english-category" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEnglishNote" aria-expanded="false" aria-controls="collapseEnglishNote">
+                        <div class="accordion-category">
+                            <i class="fas fa-globe-americas"></i>
+                            <span>المذكرات الإنجليزية</span>
+                            <span class="category-badge ms-auto">English</span>
+                        </div>
                     </button>
                 </h2>
                 <div id="collapseEnglishNote" class="accordion-collapse collapse" aria-labelledby="headingEnglishNote" data-bs-parent="#addItemsAccordion">
                     <div class="accordion-body">
                         <form method="POST">
                             {% csrf_token %}
-                            <div class="mb-2"><label class="form-label">Title:</label><input type="text" name="english_title" class="form-control" required></div>
-                            <div class="mb-2"><label class="form-label">Content:</label><textarea name="english_content" class="form-control english-textarea" rows="4" placeholder="Write English notes here..." required></textarea></div>
-                            <button type="submit" name="add_english_note" class="btn btn-info"><i class="fas fa-plus me-1"></i>Add</button>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Title:</label>
+                                <input type="text" name="english_title" class="form-control" placeholder="Enter note title..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Content:</label>
+                                <textarea name="english_content" class="form-control english-textarea" placeholder="Write your English notes here..." required></textarea>
+                            </div>
+                            <button type="submit" name="add_english_note" class="btn btn-info">
+                                <i class="fas fa-plus me-2"></i>Add Note
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    
+    <!-- المحتوى المضاف -->
+    <div class="glass-card">
+        <h4 class="section-header">
+            <i class="fas fa-folder-open"></i>
+            المحتوى المضاف
+        </h4>
         
-        <hr class="border-secondary my-4">
-        
-        <h4 class="text-center text-white mb-3">📋 التفاصيل الكاملة لليوم</h4>
-        <div class="row g-3">
+        <div class="row g-4">
             <!-- الأكواد -->
             <div class="col-lg-6 col-xl-3">
-                <h6 class="text-primary mb-2 fw-bold"><i class="fas fa-code me-2"></i>الأكواد</h6>
+                <h6 class="section-header text-primary">
+                    <i class="fas fa-code"></i>
+                    الأكواد البرمجية
+                </h6>
                 {% for code in day.codes.all %}
-                <div class="item-card mb-2">
+                <div class="item-card mb-3">
                     <div class="item-card-header text-truncate">{{ code.title }}</div>
-                    <div class="item-card-body" onclick="openViewModal(`{{ code.content|escapejs }}`, '{{ code.title|escapejs }}', 'code')">
-                        <pre class="language-python" style="font-size:0.75rem; margin:0; max-height:150px; overflow-y:auto; overflow-x:auto; white-space:pre-wrap;"><code class="language-python">{{ code.content|safe }}</code></pre>
+                    <div class="item-card-body" onclick="openCodeModal(`{{ code.content|escapejs }}`, '{{ code.title|escapejs }}')">
+                        <div class="code-preview">{{ code.content|truncatechars:100 }}</div>
                     </div>
                     <div class="item-card-footer">
-                        <button class="icon-btn" title="عرض" onclick="openViewModal(`{{ code.content|escapejs }}`, `{{ code.title|escapejs }}`, 'code')"><i class="fas fa-eye"></i></button>
-                        <a href="{% url 'edit_code' code.id %}" class="icon-btn edit" title="تعديل"><i class="fas fa-pencil-alt"></i></a>
-                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="delete_code" value="{{ code.id }}"><button type="submit" class="icon-btn delete" title="حذف"><i class="fas fa-trash"></i></button></form>
+                        <button class="icon-btn" title="عرض" onclick="openCodeModal(`{{ code.content|escapejs }}`, '{{ code.title|escapejs }}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="{% url 'edit_code' code.id %}" class="icon-btn edit" title="تعديل">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_code" value="{{ code.id }}">
+                            <button type="submit" class="icon-btn delete" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
-                {% empty %}<p class="text-muted small">لا أكواد مضافة.</p>{% endfor %}
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-code fa-2x mb-2"></i>
+                    <p>لا توجد أكواد مضافة</p>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- الصور -->
             <div class="col-lg-6 col-xl-3">
-                <h6 class="text-success mb-2 fw-bold"><i class="fas fa-image me-2"></i>الصور</h6>
+                <h6 class="section-header text-success">
+                    <i class="fas fa-image"></i>
+                    الصور
+                </h6>
                 {% for image in day.images.all %}
-                <div class="item-card mb-2">
+                <div class="item-card mb-3">
                     <div class="item-card-header text-truncate">{{ image.title }}</div>
                     <div class="item-card-body p-0" onclick="openViewModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">
-                        <img src="{{ image.file.url }}" alt="{{ image.title }}" class="image-preview">
+                        <img src="{{ image.file.url }}" alt="{{ image.title }}" class="image-preview w-100">
                     </div>
                     <div class="item-card-footer">
-                        <button class="icon-btn" title="عرض" onclick="openViewModal('{{ image.file.url }}', `{{ image.title|escapejs }}`, 'image')"><i class="fas fa-eye"></i></button>
-                        <a href="{% url 'edit_image' image.id %}" class="icon-btn edit" title="تعديل"><i class="fas fa-pencil-alt"></i></a>
-                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="delete_image" value="{{ image.id }}"><button type="submit" class="icon-btn delete" title="حذف"><i class="fas fa-trash"></i></button></form>
+                        <button class="icon-btn" title="عرض" onclick="openViewModal('{{ image.file.url }}', '{{ image.title|escapejs }}', 'image')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="{% url 'edit_image' image.id %}" class="icon-btn edit" title="تعديل">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_image" value="{{ image.id }}">
+                            <button type="submit" class="icon-btn delete" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
-                {% empty %}<p class="text-muted small">لا صور مضافة.</p>{% endfor %}
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-image fa-2x mb-2"></i>
+                    <p>لا توجد صور مضافة</p>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- المذكرات -->
             <div class="col-lg-6 col-xl-3">
-                <h6 class="text-warning mb-2 fw-bold"><i class="fas fa-sticky-note me-2"></i>المذكرات</h6>
+                <h6 class="section-header text-warning">
+                    <i class="fas fa-sticky-note"></i>
+                    المذكرات العربية
+                </h6>
                 {% for note in day.notes.all %}
-                <div class="item-card mb-2">
+                <div class="item-card mb-3">
                     <div class="item-card-header text-truncate">{{ note.title }}</div>
-                    <div class="item-card-body" onclick="openViewModal(`{{ note.content|escapejs }}`, `{{ note.title|escapejs }}`, 'note')">
-                        <pre class="note-content-preview">{{ note.content|truncatewords:15 }}</pre>
+                    <div class="item-card-body" onclick="openViewModal(`{{ note.content|escapejs }}`, '{{ note.title|escapejs }}', 'note')">
+                        <pre class="note-content-preview">{{ note.content|truncatewords:20 }}</pre>
                     </div>
                     <div class="item-card-footer">
-                        <button class="icon-btn" title="عرض" onclick="openViewModal(`{{ note.content|escapejs }}`, `{{ note.title|escapejs }}`, 'note')"><i class="fas fa-eye"></i></button>
-                        <a href="{% url 'edit_note' note.id %}" class="icon-btn edit" title="تعديل"><i class="fas fa-pencil-alt"></i></a>
-                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="delete_note" value="{{ note.id }}"><button type="submit" class="icon-btn delete" title="حذف"><i class="fas fa-trash"></i></button></form>
+                        <button class="icon-btn" title="عرض" onclick="openViewModal(`{{ note.content|escapejs }}`, '{{ note.title|escapejs }}', 'note')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="{% url 'edit_note' note.id %}" class="icon-btn edit" title="تعديل">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_note" value="{{ note.id }}">
+                            <button type="submit" class="icon-btn delete" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
-                {% empty %}<p class="text-muted small">لا مذكرات مضافة.</p>{% endfor %}
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-sticky-note fa-2x mb-2"></i>
+                    <p>لا توجد مذكرات مضافة</p>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- English Notes -->
             <div class="col-lg-6 col-xl-3">
-                <h6 class="text-info mb-2 fw-bold"><i class="fas fa-globe-americas me-2"></i>English Notes</h6>
+                <h6 class="section-header text-info">
+                    <i class="fas fa-globe-americas"></i>
+                    المذكرات الإنجليزية
+                </h6>
                 {% for enote in day.english_notes.all %}
-                <div class="item-card mb-2">
+                <div class="item-card mb-3">
                     <div class="item-card-header text-truncate">{{ enote.title }}</div>
-                    <div class="item-card-body" onclick="openViewModal(`{{ enote.content|escapejs }}`, `{{ enote.title|escapejs }}`, 'english_note')">
-                        <pre class="english-note-preview">{{ enote.content|truncatewords:15 }}</pre>
+                    <div class="item-card-body" onclick="openViewModal(`{{ enote.content|escapejs }}`, '{{ enote.title|escapejs }}', 'english_note')">
+                        <pre class="english-note-preview">{{ enote.content|truncatewords:20 }}</pre>
                     </div>
                     <div class="item-card-footer">
-                        <button class="icon-btn" title="View" onclick="openViewModal(`{{ enote.content|escapejs }}`, `{{ enote.title|escapejs }}`, 'english_note')"><i class="fas fa-eye"></i></button>
-                        <a href="{% url 'edit_english_note' enote.id %}" class="icon-btn edit" title="Edit"><i class="fas fa-pencil-alt"></i></a>
-                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="delete_english_note" value="{{ enote.id }}"><button type="submit" class="icon-btn delete" title="Delete"><i class="fas fa-trash"></i></button></form>
+                        <button class="icon-btn" title="View" onclick="openViewModal(`{{ enote.content|escapejs }}`, '{{ enote.title|escapejs }}', 'english_note')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="{% url 'edit_english_note' enote.id %}" class="icon-btn edit" title="Edit">
+                            <i class="fas fa-pencil-alt"></i>
+                        </a>
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_english_note" value="{{ enote.id }}">
+                            <button type="submit" class="icon-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
-                {% empty %}<p class="text-muted small">No English notes added.</p>{% endfor %}
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-globe-americas fa-2x mb-2"></i>
+                    <p>No English notes added</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal لعرض التفاصيل -->
+<!-- Modal لعرض الكود -->
+<div class="modal fade" id="codeModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered code-modal">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" id="codeModalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <pre class="code-modal-content m-0"><code class="language-python" id="codeModalContent"></code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal لعرض التفاصيل الأخرى -->
 <div class="modal fade" id="viewModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -523,6 +1026,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
 
 <script>
@@ -555,6 +1060,24 @@ function setNoteLanguage(language) {
     }
 }
 
+// دالة خاصة لعرض الكود مع تنسيق مناسب
+function openCodeModal(content, title) {
+    const modalTitle = document.getElementById('codeModalTitle');
+    const modalContent = document.getElementById('codeModalContent');
+    const codeModal = new bootstrap.Modal(document.getElementById('codeModal'));
+
+    modalTitle.textContent = title;
+    modalContent.textContent = content;
+    
+    codeModal.show();
+    
+    // إعادة تطبيق تلوين الصyntax بعد فتح المودال
+    setTimeout(() => {
+        Prism.highlightAll();
+    }, 100);
+}
+
+// دالة لعرض المحتوى العادي (الصور والمذكرات)
 function openViewModal(content, title, type) {
     const modalTitle = document.getElementById('viewModalTitle');
     const modalContent = document.getElementById('viewModalContent');
@@ -566,13 +1089,7 @@ function openViewModal(content, title, type) {
     if (type === 'image') {
         modalDialog.classList.remove('code-modal');
         modalDialog.classList.add('image-modal');
-        modalContent.innerHTML = `<img src="${content}" alt="${title}" style="width: 100%; height: auto; max-width: 100%; max-height: 90vh; object-fit: contain; display: block; margin: 0 auto;">`;
-    } else if (type === 'code') {
-        modalDialog.classList.remove('image-modal');
-        modalDialog.classList.add('code-modal');
-        const encodedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        modalContent.innerHTML = `<pre style="white-space:pre-wrap; max-height:80vh; overflow-y:auto; overflow-x:auto;"><code class="language-python">${encodedContent}</code></pre>`;
-        Prism.highlightAll();
+        modalContent.innerHTML = `<img src="${content}" alt="${title}" style="width: 100%; height: auto; max-width: 100%; max-height: 90vh; object-fit: contain; display: block; margin: 0 auto; border-radius: 10px;">`;
     } else {
         modalDialog.classList.remove('image-modal', 'code-modal');
         modalContent.innerHTML = `<pre class="note-content">${content}</pre>`;
@@ -580,6 +1097,15 @@ function openViewModal(content, title, type) {
 
     viewModal.show();
 }
+
+// Add smooth scrolling for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading animation to cards
+    const cards = document.querySelectorAll('.item-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+});
 </script>
 
 {% endblock %}

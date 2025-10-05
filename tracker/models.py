@@ -1,6 +1,5 @@
 from django.db import models
-
-# Create your models here.
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
@@ -71,3 +70,17 @@ class EnglishNote(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+class ChatMessage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # اختياري لو في تسجيل دخول
+    question = models.TextField()
+    answer = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"Question: {self.question[:50]}..."

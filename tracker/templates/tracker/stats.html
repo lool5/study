@@ -1,366 +1,869 @@
 {% extends 'tracker/base.html' %}
 
-{% block title %}لوحة الإحصائيات{% endblock %}
+{% block title %}الكون التعليمي - لوحة الإحصائيات{% endblock %}
 
 {% block content %}
+<!-- مكتبات إضافية للتأثيرات الخاصة -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
 <style>
+:root {
+    --cosmic-primary: #8b5cf6;
+    --cosmic-secondary: #06b6d4;
+    --cosmic-accent: #f59e0b;
+    --cosmic-nebula: #6366f1;
+    --cosmic-star: #fbbf24;
+    --cosmic-dark: #0f0f23;
+    --cosmic-darker: #0a0a1a;
+    --cosmic-black-hole: #000000;
+    --cosmic-text: #f1f5f9;
+    --cosmic-glow: 0 0 20px currentColor;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    background: linear-gradient(135deg, #1e3a8a, #6b7280);
+    background: var(--cosmic-darker);
     font-family: 'Tajawal', sans-serif;
+    color: var(--cosmic-text);
     overflow-x: hidden;
     position: relative;
+    min-height: 100vh;
 }
-.glass-card {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.glass-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-.chart-container {
+
+/* الكون الخلفي */
+.cosmic-universe {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 1200px; /* زيادة الحجم الأقصى */
-    height: 600px; /* زيادة ارتفاع الرسم البياني */
-    margin: 0 auto;
-    padding: 40px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+    height: 100%;
+    z-index: -3;
+    background: 
+        radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 40% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, var(--cosmic-darker) 0%, var(--cosmic-black-hole) 100%);
+    animation: cosmicShift 30s ease-in-out infinite alternate;
 }
-.progress-bar {
-    transition: width 1s ease-in-out;
-    font-size: 1.2rem;
-    font-weight: bold;
+
+@keyframes cosmicShift {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+
+/* النجوم */
+.stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 4s infinite;
+}
+
+.star:nth-child(odd) {
+    animation-delay: 0.5s;
+}
+
+.star:nth-child(3n) {
+    animation-delay: 1s;
+}
+
+
+.text-muted {
+    --bs-text-opacity: 1;
+    color: rgb(236, 227, 166) !important;
+}
+
+.star:nth-child(5n) {
+    animation-delay: 1.5s;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* الكواكب */
+.planet {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(1px);
+    z-index: -1;
+    animation: float 20s infinite linear;
+}
+
+.planet-1 {
+    width: 300px;
+    height: 300px;
+    top: 10%;
+    right: 5%;
+    background: radial-gradient(circle at 30% 30%, var(--cosmic-primary), transparent 70%);
+    animation-duration: 25s;
+}
+
+.planet-2 {
+    width: 200px;
+    height: 200px;
+    bottom: 15%;
+    left: 8%;
+    background: radial-gradient(circle at 40% 40%, var(--cosmic-secondary), transparent 70%);
+    animation-duration: 30s;
+    animation-direction: reverse;
+}
+
+.planet-3 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: 15%;
+    background: radial-gradient(circle at 50% 50%, var(--cosmic-accent), transparent 70%);
+    animation-duration: 35s;
+}
+
+@keyframes float {
+    0% { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+}
+
+/* السحب الكونية */
+.nebula {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.1;
+    z-index: -1;
+    animation: nebulaFloat 40s infinite ease-in-out;
+}
+
+.nebula-1 {
+    width: 500px;
+    height: 500px;
+    top: 20%;
+    left: 10%;
+    background: var(--cosmic-primary);
+}
+
+.nebula-2 {
+    width: 400px;
+    height: 400px;
+    bottom: 10%;
+    right: 15%;
+    background: var(--cosmic-secondary);
+    animation-delay: 10s;
+}
+
+.nebula-3 {
+    width: 300px;
+    height: 300px;
+    top: 50%;
+    left: 20%;
+    background: var(--cosmic-accent);
+    animation-delay: 20s;
+}
+
+@keyframes nebulaFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(50px, -30px) scale(1.1); }
+    50% { transform: translate(-30px, 40px) scale(0.9); }
+    75% { transform: translate(-50px, -20px) scale(1.05); }
+}
+
+/* التصميم الرئيسي */
+.cosmic-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+/* العنوان الكوني */
+.cosmic-title {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.title-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--cosmic-primary), var(--cosmic-secondary), var(--cosmic-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 
+        0 0 20px rgba(139, 92, 246, 0.5),
+        0 0 40px rgba(6, 182, 212, 0.3),
+        0 0 60px rgba(245, 158, 11, 0.2);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+    margin-bottom: 1rem;
+}
+
+@keyframes titleGlow {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+.title-subtitle {
+    font-size: 1.5rem;
+    color: var(--cosmic-text);
+    opacity: 0.8;
+    font-weight: 300;
+}
+
+/* الكروت الكونية */
+.cosmic-card {
+    background: rgba(229, 221, 221, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 20px 40px rgb(255, 255, 255),
+        0 0 80px rgba(168, 166, 177, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 2rem;
+}
+
+.cosmic-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: 0.6s;
+}
+
+.cosmic-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.4),
+        0 0 120px rgba(139, 92, 246, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.cosmic-card:hover::before {
+    left: 100%;
+}
+
+/* شارات التقدم الكونية */
+.progress-orb {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    position: relative;
+    margin: 0 auto 1.5rem;
+    background: conic-gradient(
+        var(--cosmic-primary) 0%,
+        var(--cosmic-primary) var(--progress, 0%),
+        rgba(255, 255, 255, 0.1) var(--progress, 0%),
+        rgba(255, 255, 255, 0.1) 100%
+    );
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 
+        0 0 30px rgba(139, 92, 246, 0.3),
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+    animation: orbRotate 10s linear infinite;
 }
-.alert-warning {
-    background: rgba(255, 193, 7, 0.2);
-    border: 1px solid #ffc107;
-    color: #fff;
+
+.progress-orb::before {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(30, 30, 60, 0.8);
+    border-radius: 50%;
+    z-index: 1;
 }
-h1, h3 {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+
+.progress-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
 }
-.particles {
-    position: fixed;
+
+@keyframes orbRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* محرك البحث الكوني */
+.search-portal {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.search-portal::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        transparent,
+        rgba(139, 92, 246, 0.1),
+        transparent 30%
+    );
+    animation: portalRotate 10s linear infinite;
+}
+
+@keyframes portalRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.search-form {
+    position: relative;
+    z-index: 2;
+}
+
+/* الرسم البياني الكوني */
+.chart-container {
     width: 100%;
-    height: 100%;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-container::before {
+    content: '';
+    position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
     pointer-events: none;
+}
+
+/* الأزرار الكونية */
+.cosmic-btn {
+    background: linear-gradient(135deg, var(--cosmic-primary), var(--cosmic-secondary));
+    border: none;
+    border-radius: 15px;
+    padding: 0.8rem 2rem;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+}
+
+.cosmic-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.cosmic-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(139, 92, 246, 0.4);
+}
+
+.cosmic-btn:hover::before {
+    left: 100%;
+}
+
+/* تأثيرات النص */
+.glow-text {
+    text-shadow: 0 0 10px currentColor;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* النجوم المتحركة */
+.shooting-star {
+    position: fixed;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px 2px white;
+    animation: shoot 3s linear infinite;
     z-index: -1;
 }
+
+@keyframes shoot {
+    0% {
+        transform: translateX(-100vw) translateY(0) rotate(45deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100vw) translateY(100vh) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* التكيف مع الشاشات المختلفة */
+@media (max-width: 768px) {
+    .title-text {
+        font-size: 2.5rem;
+    }
+    
+    .cosmic-card {
+        padding: 1.5rem;
+    }
+    
+    .progress-orb {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .chart-container {
+        height: 400px;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .title-text {
+        font-size: 2rem;
+    }
+    
+    .cosmic-container {
+        padding: 1rem 0;
+    }
+}
+
+
 </style>
 
-<div class="container-fluid py-5 position-relative">
-    <!-- خلفية الجسيمات (Particles) -->
-    <canvas class="particles" id="particleCanvas"></canvas>
+<!-- الكون -->
+<div class="cosmic-universe"></div>
+<div class="stars" id="stars"></div>
+<div class="planet planet-1"></div>
+<div class="planet planet-2"></div>
+<div class="planet planet-3"></div>
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
 
-    <h1 class="text-center mb-5 text-white fw-bold">📊 لوحة الإحصائيات السنوية</h1>
+<div class="container cosmic-container">
+    <!-- العنوان الكوني -->
+    <div class="cosmic-title">
+        <h1 class="title-text">🪐تقدمك علي مدار السنة</h1>
+        <p class="title-subtitle">رحلتك</p>
+    </div>
 
     <!-- تنبيه إذا كان التقدم ضعيف -->
     {% if alert_message %}
-    <div class="alert alert-warning alert-dismissible fade show text-center mx-auto" style="max-width: 600px;">
-        {{ alert_message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="cosmic-card text-center mb-4">
+        <div class="alert alert-warning cosmic-alert border-0 mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ alert_message }}
+        </div>
     </div>
     {% endif %}
 
-    <!-- السيرش -->
-    <div class="row mb-5">
-        <div class="col-md-8 mx-auto">
-            <div class="card glass-card p-4">
-                <h3 class="text-center mb-4 text-white"><i class="fas fa-search"></i> بحث في المحتوى</h3>
-                <form method="GET" class="d-flex">
-                    <input type="text" name="search" value="{{ search_query|default:'' }}" class="form-control me-2" placeholder="ابحث في الأكواد، الصور، المذكرات..." required>
-                    <select name="type" class="form-select me-2" style="width: auto;">
-                        <option value="">الكل</option>
+    <!-- محرك البحث الكوني -->
+    <div class="search-portal">
+        <h3 class="text-center mb-4 glow-text"><i class="fas fa-search"></i> بوابة البحث الكوني</h3>
+        <div class="search-form">
+            <form method="GET" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" 
+                           class="form-control cosmic-input" 
+                           placeholder="🔍 ابحث في الأكواد، الصور، المذكرات عبر الأبعاد...">
+                </div>
+                <div class="col-md-2">
+                    <select name="type" class="form-select cosmic-input">
+                        <option value="">كل الأبعاد</option>
                         <option value="day" {% if type_filter == 'day' %}selected{% endif %}>يوم</option>
                         <option value="code" {% if type_filter == 'code' %}selected{% endif %}>كود</option>
                         <option value="image" {% if type_filter == 'image' %}selected{% endif %}>صورة</option>
                         <option value="note" {% if type_filter == 'note' %}selected{% endif %}>مذكرة</option>
                         <option value="english_note" {% if type_filter == 'english_note' %}selected{% endif %}>ملاحظة إنجليزية</option>
                     </select>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
-                </form>
-                {% if items %}
-                <div class="row mt-4 g-3">
-                    {% for item in items %}
-                    <div class="col-md-4">
-                        <div class="card glass-card p-3">
-                            <h6 class="text-white">{{ item.title }}</h6>
-                            <p class="text-white small">نوع: {{ item.item_type }} | {{ item.day.date|date:"d/m/Y" }}</p>
-                            {% if item.item_type == 'صورة' %}
-                            <img src="{{ item.file.url }}" class="img-fluid mb-2" style="max-height: 150px; cursor: pointer;" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">
-                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">عرض التفاصيل</button>
-                            {% else %}
-                            <p class="text-white">{{ item.content|truncatewords:10 }}</p>
-                            <button class="btn btn-primary btn-sm" onclick="openModal('{{ item.content|escapejs }}', '{{ item.title|escapejs }}', '{{ item.item_type|lower }}')">عرض التفاصيل</button>
-                            {% endif %}
-                            <a href="{% url 'day_detail' item.day.id %}" class="btn btn-secondary btn-sm mt-2">تفاصيل اليوم</a>
-                        </div>
-                    </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <p class="text-center text-white mt-4">لا توجد نتائج</p>
-                {% endif %}
+                <div class="col-md-2">
+                    <button type="submit" class="cosmic-btn w-100">
+                        <i class="fas fa-rocket me-2"></i>إطلاق
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if items %}
+        <div class="row mt-4 g-3">
+            {% for item in items %}
+            <div class="col-md-4">
+                <div class="cosmic-card h-100">
+                    <h6 class="glow-text">{{ item.title }}</h6>
+                    <p class="small text-muted mb-2">
+                        <i class="fas fa-layer-group me-1"></i>
+                        {{ item.item_type }} | {{ item.day.date|date:"d/m/Y" }}
+                    </p>
+                    {% if item.item_type == 'صورة' %}
+                    <img src="{{ item.file.url }}" class="img-fluid rounded mb-3" 
+                         style="max-height: 150px; cursor: pointer;"
+                         onclick="openCosmicModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">
+                    <button class="cosmic-btn btn-sm w-100" 
+                            onclick="openCosmicModal('{{ item.file.url }}', '{{ item.title|escapejs }}', 'image')">
+                        <i class="fas fa-expand me-1"></i>عرض الصورة
+                    </button>
+                    {% else %}
+                    <p class="mb-3">{{ item.content|truncatewords:15 }}</p>
+                    <button class="cosmic-btn btn-sm w-100" 
+                            onclick="openCosmicModal('{{ item.content|escapejs }}', '{{ item.title|escapejs }}', '{{ item.item_type|lower }}')">
+                        <i class="fas fa-eye me-1"></i>استكشاف المحتوى
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'day_detail' item.day.id %}" class="btn btn-outline-light btn-sm w-100 mt-2">
+                        <i class="fas fa-calendar-day me-1"></i>زيارة اليوم
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center mt-4">
+            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+            <p class="text-muted">لا توجد نتائج في هذا البعد</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- الخريطة الكونية (الرسم البياني) -->
+    <div class="cosmic-card">
+        <h3 class="text-center mb-4 glow-text">
+            <i class="fas fa-chart-network"></i> الخريطة الكونية للتقدم
+        </h3>
+        <div class="chart-container">
+            <canvas id="cosmicChart"></canvas>
+        </div>
+    </div>
+
+    <!-- الكواكب الإحصائية -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="cosmic-card text-center h-100">
+                <div class="progress-orb" style="--progress: {{ hours_progress }}%">
+                    <div class="progress-content">
+                        <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                        <h4 class="mb-0">{{ studied_hours|floatformat:0 }}</h4>
+                        <small>ساعة</small>
+                    </div>
+                </div>
+                <h4 class="glow-text mb-2">⏳ ساعات الدراسة</h4>
+                <p class="text-muted mb-3">
+                    {{ hours_progress|floatformat:1 }}% من المستهدف<br>
+                    متبقي: {{ remaining_hours|floatformat:0 }} ساعة
+                </p>
+                <div class="progress cosmic-progress">
+                    <div class="progress-bar bg-primary" style="width: {{ hours_progress }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="cosmic-card text-center h-100">
+                <div class="progress-orb" style="--progress: {{ stars_progress }}%">
+                    <div class="progress-content">
+                        <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                        <h4 class="mb-0">{{ total_stars }}</h4>
+                        <small>نجمة</small>
+                    </div>
+                </div>
+                <h4 class="glow-text mb-2">⭐ النجوم المنجزة</h4>
+                <p class="text-muted mb-3">
+                    {{ stars_progress|floatformat:1 }}% من المستهدف<br>
+                    متبقي: {{ remaining_stars }} نجمة
+                </p>
+                <div class="progress cosmic-progress">
+                    <div class="progress-bar bg-warning" style="width: {{ stars_progress }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="cosmic-card text-center h-100">
+                <div class="progress-orb" style="--progress: {{ days_progress }}%">
+                    <div class="progress-content">
+                        <i class="fas fa-calendar fa-2x text-info mb-2"></i>
+                        <h4 class="mb-0">{{ studied_days_count }}</h4>
+                        <small>يوم</small>
+                    </div>
+                </div>
+                <h4 class="glow-text mb-2">📅 الأيام المدروسة</h4>
+                <p class="text-muted mb-3">
+                    {{ days_progress|floatformat:1 }}% من المستهدف<br>
+                    متبقي: {{ remaining_days }} يوم
+                </p>
+                <div class="progress cosmic-progress">
+                    <div class="progress-bar bg-info" style="width: {{ days_progress }}%"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- رسم بياني -->
-    <div class="card glass-card p-4 mb-5">
-        <h3 class="text-center mb-4 text-white">📈 تقدم الساعات، النجوم، والأيام حسب الشهر</h3>
-        <div class="chart-container">
-            <canvas id="progressChart"></canvas>
-        </div>
-    </div>
-
-    <!-- الأيام الضعيفة -->
+    <!-- الكويكبات الضعيفة -->
     {% if weak_days %}
-    <div class="card glass-card p-4 mb-5">
-        <h3 class="text-center mb-4 text-white">⚠️ الأيام بأقل من 3 ساعات</h3>
+    <div class="cosmic-card">
+        <h3 class="text-center mb-4 glow-text">
+            <i class="fas fa-exclamation-triangle"></i> الكويكبات التي تحتاج تعزيز
+        </h3>
         <div class="row g-3">
             {% for day in weak_days %}
             <div class="col-md-3">
-                <div class="card glass-card p-3 text-center">
-                    <h6 class="text-white">{{ day.date|date:"d/m/Y" }}</h6>
-                    <p class="text-white small">إجمالي: {{ day.total_hours|floatformat:0 }} ساعة</p>
-                    <a href="{% url 'day_detail' day.id %}" class="btn btn-warning btn-sm">تفاصيل</a>
+                <div class="cosmic-card text-center p-3 h-100">
+                    <div class="weak-orb pulse mb-3">
+                        <i class="fas fa-calendar-day fa-2x text-warning"></i>
+                    </div>
+                    <h6 class="glow-text">{{ day.date|date:"d/m/Y" }}</h6>
+                    <p class="text-muted small mb-3">
+                        إجمالي الطاقة: {{ day.total_hours|floatformat:0 }} ساعة
+                    </p>
+                    <a href="{% url 'day_detail' day.id %}" class="cosmic-btn btn-sm w-100">
+                        <i class="fas fa-rocket me-1"></i>تعزيز
+                    </a>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
+</div>
 
-    <!-- كروت الإحصائيات -->
-    <div class="row mb-5 g-4">
-        <div class="col-md-4">
-            <div class="card glass-card p-4 text-center">
-                <i class="fas fa-clock fa-3x mb-3 text-primary"></i>
-                <h3 class="text-white">ساعات الدراسة</h3>
-                <h2 class="text-white fw-bold">{{ studied_hours|floatformat:0 }}</h2>
-                <p class="text-white">من {{ total_possible_hours }} ساعة</p>
-                <div class="progress" style="height: 30px;">
-                    <div class="progress-bar bg-primary" style="width: {{ hours_progress }}%;">
-                        {{ hours_progress|floatformat:1 }}%
-                    </div>
-                </div>
-                <small class="text-white mt-2">متبقي: {{ remaining_hours|floatformat:0 }} ساعة</small>
+<!-- المودال الكوني -->
+<div class="modal fade" id="cosmicModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content cosmic-modal-content">
+            <div class="modal-header cosmic-modal-header">
+                <h5 class="modal-title glow-text" id="cosmicModalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card glass-card p-4 text-center">
-                <i class="fas fa-star fa-3x mb-3 text-warning"></i>
-                <h3 class="text-white">النجوم</h3>
-                <h2 class="text-white fw-bold">{{ total_stars }}</h2>
-                <p class="text-white">من {{ total_possible_stars }} نجمة</p>
-                <div class="progress" style="height: 30px;">
-                    <div class="progress-bar bg-warning" style="width: {{ stars_progress }}%;">
-                        {{ stars_progress|floatformat:1 }}%
-                    </div>
-                </div>
-                <small class="text-white mt-2">متبقي: {{ remaining_stars }} نجمة</small>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card glass-card p-4 text-center">
-                <i class="fas fa-calendar fa-3x mb-3 text-info"></i>
-                <h3 class="text-white">الأيام المدروسة</h3>
-                <h2 class="text-white fw-bold">{{ studied_days_count }}</h2>
-                <p class="text-white">من {{ total_possible_days }} يوم</p>
-                <div class="progress" style="height: 30px;">
-                    <div class="progress-bar bg-info" style="width: {{ days_progress }}%;">
-                        {{ days_progress|floatformat:1 }}%
-                    </div>
-                </div>
-                <small class="text-white mt-2">متبقي: {{ remaining_days }} يوم</small>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal لعرض التفاصيل -->
-    <div class="modal fade" id="contentModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle"></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="modalContent"></div>
-            </div>
+            <div class="modal-body cosmic-modal-body" id="cosmicModalContent"></div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // عرض التفاصيل في Modal
-    window.openModal = function(content, title, type) {
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        modalTitle.textContent = title;
-        if (type === 'image') {
-            modalContent.innerHTML = `<img src="${content}" class="img-fluid" style="max-width: 100%;">`;
-        } else {
-            const escapedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            modalContent.innerHTML = `<pre><code class="language-${type === 'كود' ? 'python' : 'markup'}">${escapedContent}</code></pre>`;
+// إنشاء النجوم
+function createStars() {
+    const starsContainer = document.getElementById('stars');
+    const starCount = 200;
+    
+    for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.width = `${Math.random() * 3 + 1}px`;
+        star.style.height = star.style.width;
+        star.style.animationDelay = `${Math.random() * 4}s`;
+        starsContainer.appendChild(star);
+    }
+}
+
+// إنشاء الشهب
+function createShootingStars() {
+    setInterval(() => {
+        if (Math.random() > 0.7) {
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.left = `${Math.random() * 20}%`;
+            star.style.top = `${Math.random() * 20}%`;
+            star.style.animationDuration = `${Math.random() * 2 + 2}s`;
+            document.body.appendChild(star);
+            
+            setTimeout(() => {
+                star.remove();
+            }, 3000);
+        }
+    }, 1000);
+}
+
+// المودال الكوني
+function openCosmicModal(content, title, type) {
+    const modalTitle = document.getElementById('cosmicModalTitle');
+    const modalContent = document.getElementById('cosmicModalContent');
+    
+    modalTitle.textContent = title;
+    
+    if (type === 'image') {
+        modalContent.innerHTML = `
+            <div class="text-center">
+                <img src="${content}" class="img-fluid rounded cosmic-modal-image" 
+                     style="max-height: 70vh; max-width: 100%;">
+            </div>
+        `;
+    } else {
+        const escapedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        modalContent.innerHTML = `
+            <pre class="cosmic-code-block"><code class="language-${type === 'code' ? 'python' : 'markup'}">${escapedContent}</code></pre>
+        `;
+        if (typeof Prism !== 'undefined') {
             Prism.highlightAll();
         }
-        new bootstrap.Modal(document.getElementById('contentModal')).show();
-    };
+    }
+    
+    new bootstrap.Modal(document.getElementById('cosmicModal')).show();
+}
 
-    // الرسم البياني (Radar)
-    const ctx = document.getElementById('progressChart').getContext('2d');
+// الرسم البياني الكوني
+function createCosmicChart() {
+    const ctx = document.getElementById('cosmicChart').getContext('2d');
+    
+    // بيانات نموذجية - يجب استبدالها بالبيانات الحقيقية
+    const cosmicData = {
+        labels: [{% for month in monthly_data %}'{{ month.name }}',{% endfor %}],
+        datasets: [
+            {
+                label: '🛡️ ساعات السايبر',
+                data: [{% for month in monthly_data %}{{ month.cyber_hours }},{% endfor %}],
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: '🌍 ساعات الإنجليزي',
+                data: [{% for month in monthly_data %}{{ month.english_hours }},{% endfor %}],
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: '⭐ النجوم',
+                data: [{% for month in monthly_data %}{{ month.stars }},{% endfor %}],
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    };
+    
     new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: [{% for month in monthly_data %}'{{ month.name }}',{% endfor %}],
-            datasets: [
-                {
-                    label: 'ساعات السايبر',
-                    data: [{% for month in monthly_data %}{{ month.cyber_hours }},{% endfor %}],
-                    backgroundColor: 'rgba(0, 191, 255, 0.3)',
-                    borderColor: 'rgba(0, 191, 255, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: [{% for month in monthly_data %}{% if month.days > 0 %}'rgba(0, 191, 255, 1)'{% else %}'rgba(255, 99, 71, 1)'{% endif %},{% endfor %}],
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(0, 191, 255, 1)'
-                },
-                {
-                    label: 'ساعات الإنجليزي',
-                    data: [{% for month in monthly_data %}{{ month.english_hours }},{% endfor %}],
-                    backgroundColor: 'rgba(0, 255, 204, 0.3)',
-                    borderColor: 'rgba(0, 255, 204, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: [{% for month in monthly_data %}{% if month.days > 0 %}'rgba(0, 255, 204, 1)'{% else %}'rgba(255, 99, 71, 1)'{% endif %},{% endfor %}],
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(0, 255, 204, 1)'
-                },
-                {
-                    label: 'إجمالي الساعات',
-                    data: [{% for month in monthly_data %}{{ month.cyber_hours|add:month.english_hours }},{% endfor %}],
-                    backgroundColor: 'rgba(147, 112, 219, 0.3)',
-                    borderColor: 'rgba(147, 112, 219, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: [{% for month in monthly_data %}{% if month.days > 0 %}'rgba(147, 112, 219, 1)'{% else %}'rgba(255, 99, 71, 1)'{% endif %},{% endfor %}],
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(147, 112, 219, 1)'
-                },
-                {
-                    label: 'النجوم',
-                    data: [{% for month in monthly_data %}{{ month.stars }},{% endfor %}],
-                    backgroundColor: 'rgba(255, 105, 180, 0.3)',
-                    borderColor: 'rgba(255, 105, 180, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: [{% for month in monthly_data %}{% if month.days > 0 %}'rgba(255, 105, 180, 1)'{% else %}'rgba(255, 99, 71, 1)'{% endif %},{% endfor %}],
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(255, 105, 180, 1)'
-                },
-                {
-                    label: 'الأيام المدروسة',
-                    data: [{% for month in monthly_data %}{{ month.days }},{% endfor %}],
-                    backgroundColor: 'rgba(255, 20, 147, 0.3)',
-                    borderColor: 'rgba(255, 20, 147, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: [{% for month in monthly_data %}{% if month.days > 0 %}'rgba(255, 20, 147, 1)'{% else %}'rgba(255, 99, 71, 1)'{% endif %},{% endfor %}],
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(255, 20, 147, 1)'
-                }
-            ]
-        },
+        type: 'line',
+        data: cosmicData,
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                r: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)',
-                        lineWidth: 1
-                    },
-                    angleLines: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                        display: false
-                    },
-                    pointLabels: {
-                        color: '#fff',
-                        font: { size: 18, weight: 'bold' } // زيادة حجم النصوص
-                    }
-                }
-            },
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
                     labels: {
-                        color: '#fff',
-                        font: { size: 18 } // زيادة حجم الأساطير
+                        color: '#f1f5f9',
+                        font: {
+                            size: 14,
+                            family: 'Tajawal'
+                        }
                     }
                 },
                 title: {
                     display: true,
-                    text: 'تقدم الساعات، النجوم، والأيام حسب الشهر',
-                    color: '#fff',
-                    font: { size: 24, weight: 'bold' }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            let value = context.parsed.r;
-                            if (label.includes('ساعات')) {
-                                return `${label}: ${value} ساعة`;
-                            } else if (label === 'النجوم') {
-                                return `${label}: ${value} نجمة`;
-                            } else {
-                                return `${label}: ${value} يوم`;
-                            }
-                        }
+                    text: 'رحلة التقدم عبر الأبعاد الزمنية',
+                    color: '#f1f5f9',
+                    font: {
+                        size: 18,
+                        family: 'Tajawal',
+                        weight: 'bold'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#f1f5f9'
                     },
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#fff',
-                    bodyColor: '#fff'
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#f1f5f9'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            animations: {
+                tension: {
+                    duration: 1000,
+                    easing: 'linear'
                 }
             }
         }
     });
+}
 
-    // إضافة تأثير الجسيمات
-    particlesJS('particleCanvas', {
-        particles: {
-            number: { value: 80, density: { enable: true, value_area: 800 } },
-            color: { value: '#00ffcc' },
-            shape: { type: 'circle' },
-            opacity: { value: 0.5, random: true },
-            size: { value: 3, random: true },
-            line_linked: { enable: false },
-            move: { enable: true, speed: 2, direction: 'none', random: true }
-        },
-        interactivity: {
-            detect_on: 'canvas',
-            events: { onhover: { enable: true, mode: 'repulse' } },
-            modes: { repulse: { distance: 100, duration: 0.4 } }
-        }
+// التهيئة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    createStars();
+    createShootingStars();
+    createCosmicChart();
+    
+    // إضافة تأثيرات للكروت
+    const cards = document.querySelectorAll('.cosmic-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
     });
 });
+
+// تأثيرات الصوت (اختياري)
+function playCosmicSound() {
+    // يمكن إضافة أصوت كونية هنا
+    console.log('🚀 انطلقت في رحلة كونية!');
+}
 </script>
+
 {% endblock %}

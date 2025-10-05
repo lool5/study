@@ -1,0 +1,1040 @@
+{% extends 'tracker/base.html' %}
+{% load static %}
+
+{% block title %}ذكاء اصطناعي{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --primary: #8b5cf6;
+        --primary-dark: #7c3aed;
+        --secondary: #06b6d4;
+        --accent: #f59e0b;
+        --success: #10b981;
+        --danger: #ef4444;
+        --dark: #0f0f23;
+        --darker: #0a0a1a;
+        --light: #f8fafc;
+        --gray: #64748b;
+    }
+    
+    * { 
+        margin: 0; 
+        padding: 0; 
+        box-sizing: border-box; 
+    }
+    
+    body {
+        font-family: 'Tajawal', sans-serif;
+        min-height: 100vh;
+        background: 
+            radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 40% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+            linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1e1b4b 100%);
+        color: var(--light);
+        position: relative;
+        overflow-x: hidden;
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        z-index: 0;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    .container {
+        max-width: 1200px;
+        width: 100%;
+        height: 95vh;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        z-index: 1;
+        position: relative;
+    }
+
+    .chat-container {
+        flex: 1;
+        background: rgba(15, 15, 35, 0.7);
+        backdrop-filter: blur(25px);
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.4),
+            0 0 100px rgba(139, 92, 246, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        animation: containerAppear 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        position: relative;
+    }
+
+    .header {
+        padding: 1.3rem 1.8rem;
+        background: rgba(20, 20, 45, 0.9);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    .header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        text-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
+    }
+
+    .header h2::before {
+        content: '🧠';
+        font-size: 1.4rem;
+        filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.5));
+    }
+
+    .clear-btn {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: var(--danger);
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+        border-radius: 14px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+
+    .clear-btn:hover {
+        background: rgba(239, 68, 68, 0.3);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
+    }
+
+    .messages-area {
+        flex: 1;
+        padding: 1.8rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.8rem;
+        background: 
+            linear-gradient(rgba(10, 10, 25, 0.9), rgba(10, 10, 25, 0.9));
+        position: relative;
+    }
+
+    .messages-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .message-pair {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        position: relative;
+        transition: all 0.4s ease;
+    }
+
+    .message-pair:hover {
+        transform: translateX(-8px);
+    }
+
+    .message-box {
+        display: flex;
+        gap: 1.2rem;
+        align-items: flex-start;
+        animation: messageSlideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        max-width: 88%;
+        padding: 1.4rem 1.8rem;
+        border-radius: 24px;
+        line-height: 1.7;
+        font-size: 1rem;
+        direction: rtl;
+        white-space: pre-wrap;
+        position: relative;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .message-box:hover {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-message {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #ffffff;
+        align-self: flex-end;
+        margin-left: auto;
+        box-shadow: 
+            0 8px 25px rgba(139, 92, 246, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .ai-message {
+        background: rgba(30, 30, 60, 0.85);
+        color: var(--light);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 
+            0 8px 25px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
+    }
+
+    .message-box:hover .avatar {
+        transform: scale(1.1);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .user-message .avatar { 
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
+        color: #fff; 
+    }
+    
+    .ai-message .avatar { 
+        background: linear-gradient(135deg, var(--secondary) 0%, #0d9488 100%); 
+        color: #fff; 
+    }
+
+    .message-content {
+        flex: 1;
+        padding: 0.2rem 0;
+    }
+
+    .message-content strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+        opacity: 0.95;
+        font-weight: 700;
+    }
+
+    .action-btns {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        display: flex;
+        gap: 0.6rem;
+        opacity: 0;
+        transition: all 0.4s ease;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(15px);
+        padding: 0.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transform: translateX(-10px);
+    }
+
+    .message-pair:hover .action-btns { 
+        opacity: 1; 
+        transform: translateX(0);
+    }
+
+    .copy-btn, .delete-btn {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        border-radius: 10px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .copy-btn:hover { 
+        color: var(--success); 
+        background: rgba(16, 185, 129, 0.15); 
+        transform: scale(1.15) rotate(5deg);
+    }
+    
+    .delete-btn:hover { 
+        color: var(--danger); 
+        background: rgba(239, 68, 68, 0.15); 
+        transform: scale(1.15) rotate(-5deg);
+    }
+
+    .input-area {
+        padding: 1.8rem;
+        background: rgba(20, 20, 45, 0.9);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        position: relative;
+    }
+
+    .input-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+    }
+
+    .input-form {
+        display: flex;
+        gap: 1.2rem;
+        align-items: center;
+        max-width: 100%;
+    }
+
+    .input-group {
+        flex: 1;
+        position: relative;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 1.3rem 4rem 1.3rem 1.5rem;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 22px;
+        font-size: 1.05rem;
+        outline: none;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 
+            0 6px 20px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        direction: rtl;
+        text-align: right;
+        color: var(--light);
+        font-weight: 500;
+    }
+
+    input[type="text"]:focus {
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 
+            0 0 0 4px rgba(139, 92, 246, 0.2),
+            0 8px 30px rgba(0, 0, 0, 0.25);
+        transform: translateY(-3px);
+    }
+
+    input[type="text"]::placeholder { 
+        color: #94a3b8; 
+        font-weight: 400; 
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary);
+        font-size: 1.3rem;
+        z-index: 2;
+        filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.5));
+    }
+
+    button[type="submit"] {
+        padding: 1.3rem 1.8rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 
+            0 8px 25px rgba(139, 92, 246, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        min-width: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        position: relative;
+        overflow: hidden;
+    }
+
+    button[type="submit"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+    }
+
+    button[type="submit"]:hover:not(:disabled) {
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 
+            0 12px 30px rgba(139, 92, 246, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    button[type="submit"]:hover:not(:disabled)::before {
+        left: 100%;
+    }
+
+    button:disabled { 
+        opacity: 0.6; 
+        cursor: not-allowed; 
+        transform: none !important; 
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #ffffff;
+        animation: spin 1s ease-in-out infinite;
+        margin-left: 10px;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 0.3rem;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--primary);
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    /* Animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(1deg); }
+    }
+
+    @keyframes containerAppear { 
+        from { 
+            opacity: 0; 
+            transform: translateY(40px) scale(0.95); 
+        } 
+        to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+        } 
+    }
+
+    @keyframes messageSlideIn { 
+        from { 
+            opacity: 0; 
+            transform: translateX(30px) scale(0.95); 
+        } 
+        to { 
+            opacity: 1; 
+            transform: translateX(0) scale(1); 
+        } 
+    }
+    
+    @keyframes spin { 
+        to { 
+            transform: rotate(360deg); 
+        } 
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+        30% { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* Scrollbar Styling */
+    .messages-area::-webkit-scrollbar { 
+        width: 8px; 
+    }
+    
+    .messages-area::-webkit-scrollbar-track { 
+        background: rgba(255, 255, 255, 0.05); 
+        border-radius: 10px; 
+    }
+    
+    .messages-area::-webkit-scrollbar-thumb { 
+        background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+        border-radius: 10px; 
+    }
+
+    .messages-area::-webkit-scrollbar-thumb:hover { 
+        background: linear-gradient(135deg, var(--primary-dark), var(--secondary)); 
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) { 
+        body { 
+            padding: 0.5rem; 
+        } 
+        
+        .container { 
+            height: 100vh; 
+            padding: 0; 
+        } 
+        
+        .messages-area { 
+            padding: 1.2rem; 
+        } 
+        
+        .input-area { 
+            padding: 1.2rem; 
+        } 
+        
+        .message-box { 
+            max-width: 92%; 
+            font-size: 0.95rem; 
+            padding: 1.2rem; 
+        }
+        
+        .header {
+            padding: 1rem 1.2rem;
+        }
+        
+        .input-form {
+            gap: 1rem;
+        }
+        
+        input[type="text"] {
+            padding: 1.1rem 3.5rem 1.1rem 1.2rem;
+            font-size: 1rem;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+        }
+    }
+
+    @media (max-width: 480px) { 
+        input[type="text"] { 
+            font-size: 0.95rem; 
+            padding: 1rem 3rem 1rem 1rem; 
+        } 
+        
+        button[type="submit"] { 
+            padding: 1rem 1.2rem; 
+            font-size: 1rem; 
+        } 
+        
+        .message-box {
+            max-width: 95%;
+            padding: 1rem;
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+        
+        .header h2 {
+            font-size: 1.3rem;
+        }
+    }
+
+    /* Empty state enhancement */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #94a3b8;
+        animation: fadeIn 1s ease;
+    }
+
+    .empty-state .avatar {
+        margin: 0 auto 1.5rem;
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+    }
+
+    .empty-state .message-content {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .empty-state strong {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+        display: block;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Notification */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: var(--success);
+        color: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        transform: translateX(150%);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+</style>
+
+<!-- Notification Element -->
+<div class="notification" id="notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="notificationText">تم النسخ بنجاح!</span>
+</div>
+
+<div class="container">
+    <div class="chat-container">
+        <div class="header">
+            <h2>المساعد الذكي المتقدم</h2>
+            <button class="clear-btn" id="clearChatBtn" title="حذف المحادثة">
+                <i class="fas fa-trash-alt"></i>
+                <span>مسح المحادثة</span>
+            </button>
+        </div>
+        
+        <div class="messages-area" id="messagesArea">
+            {% for message in chat_history %}
+                <div class="message-pair" data-id="{{ message.id }}">
+                    <div class="message-box user-message">
+                        <div class="avatar"><i class="fas fa-user"></i></div>
+                        <div class="message-content">
+                            <strong>أنت:</strong>
+                            <div>{{ message.question }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="message-box ai-message">
+                        <div class="avatar"><i class="fas fa-robot"></i></div>
+                        <div class="message-content">
+                            <strong>المساعد الذكي:</strong>
+                            <div>{{ message.answer }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-btns">
+                        <button class="copy-btn" data-text="{{ message.question }}" title="نسخ السؤال">
+                            <i class="far fa-copy"></i>
+                        </button>
+                        <button class="copy-btn" data-text="{{ message.answer }}" title="نسخ الإجابة">
+                            <i class="far fa-copy"></i>
+                        </button>
+                        <button class="delete-btn" data-id="{{ message.id }}" title="حذف هذا الزوج">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <div class="avatar"><i class="fas fa-robot"></i></div>
+                    <div class="message-content">
+                        <strong>مرحباً بك في عالم الذكاء الاصطناعي!</strong>
+                        <div>أنا مساعدك الذكي المتقدم، جاهز للإجابة على جميع استفساراتك بكل دقة وذكاء. لا تتردد في سؤالي عن أي موضوع يخطر ببالك.</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="input-area">
+            <form class="input-form" id="aiForm">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" id="messageInput" name="message" placeholder="🔍 اكتب سؤالك هنا..." required autocomplete="off">
+                    <div class="input-icon"><i class="fas fa-paper-plane"></i></div>
+                </div>
+                <button type="submit" id="submitBtn">
+                    <span id="btnText">إرسال</span>
+                    <span id="loadingSpinner" class="loading" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // العناصر الأساسية
+    const form = document.getElementById('aiForm');
+    const input = document.getElementById('messageInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const messagesArea = document.getElementById('messagesArea');
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notificationText');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // عرض الإشعار
+    function showNotification(message, type = 'success') {
+        notificationText.textContent = message;
+        notification.style.background = type === 'success' ? 'var(--success)' : 'var(--danger)';
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    // إرسال النموذج
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const userMsg = input.value.trim();
+        if (!userMsg) return;
+
+        // إزالة الحالة الفارغة إذا كانت موجودة
+        const emptyState = messagesArea.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        // إضافة رسالة المستخدم
+        const userPair = document.createElement('div');
+        userPair.classList.add('message-pair');
+        userPair.innerHTML = `
+            <div class="message-box user-message">
+                <div class="avatar"><i class="fas fa-user"></i></div>
+                <div class="message-content">
+                    <strong>أنت:</strong>
+                    <div>${userMsg}</div>
+                </div>
+            </div>
+            <div class="message-box ai-message">
+                <div class="avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content">
+                    <strong>المساعد الذكي:</strong>
+                    <div class="typing-indicator">
+                        <span>يكتب</span>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="action-btns">
+                <button class="copy-btn" data-text="${userMsg}" title="نسخ السؤال">
+                    <i class="far fa-copy"></i>
+                </button>
+                <button class="copy-btn" data-text="" title="نسخ الإجابة">
+                    <i class="far fa-copy"></i>
+                </button>
+                <button class="delete-btn" title="حذف هذا الزوج">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        messagesArea.appendChild(userPair);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+
+        // تفريغ الحقل وتعطيل الزر
+        input.value = '';
+        btnText.style.display = 'none';
+        loadingSpinner.style.display = 'inline-block';
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `message=${encodeURIComponent(userMsg)}`
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                const aiDiv = userPair.querySelector('.ai-message .message-content');
+                aiDiv.innerHTML = `
+                    <strong>المساعد الذكي:</strong>
+                    <div>${data.answer}</div>
+                `;
+                
+                // تحديث بيانات الأزرار
+                userPair.querySelector('.delete-btn').dataset.id = data.id;
+                userPair.querySelectorAll('.copy-btn')[1].dataset.text = data.answer;
+                
+                // إضافة المستمعين للأزرار الجديدة
+                addEventListenersToPair(userPair);
+                
+                showNotification('تم استلام الرد بنجاح!');
+            } else {
+                throw new Error(data.error || 'حدث خطأ غير متوقع');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            const aiDiv = userPair.querySelector('.ai-message .message-content');
+            aiDiv.innerHTML = `
+                <strong>المساعد الذكي:</strong>
+                <div>⚠️ عذراً، حدث خطأ في الإرسال. يرجى المحاولة مرة أخرى.</div>
+            `;
+            showNotification('حدث خطأ في الإرسال', 'error');
+        } finally {
+            btnText.style.display = 'inline';
+            loadingSpinner.style.display = 'none';
+            submitBtn.disabled = false;
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            input.focus();
+        }
+    });
+
+    // إضافة المستمعين لزوج الرسائل
+    function addEventListenersToPair(pair) {
+        const copyBtns = pair.querySelectorAll('.copy-btn');
+        const deleteBtn = pair.querySelector('.delete-btn');
+
+        copyBtns.forEach(button => {
+            button.addEventListener('click', function() {
+                const text = this.dataset.text;
+                if (!text) return;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    const icon = this.querySelector('i');
+                    const originalClass = icon.className;
+                    icon.className = 'fas fa-check';
+                    
+                    showNotification('تم نسخ النص إلى الحافظة!');
+                    
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('فشل النسخ:', err);
+                    showNotification('فشل نسخ النص', 'error');
+                });
+            });
+        });
+
+        deleteBtn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (!id) {
+                // إذا لم يكن هناك ID (رسالة جديدة)، احذف مباشرة
+                pair.style.opacity = '0';
+                pair.style.transform = 'translateX(-30px)';
+                setTimeout(() => pair.remove(), 400);
+                return;
+            }
+
+            if (!confirm('هل تريد حذف هذا السؤال والرد؟')) return;
+
+            fetch(`/delete_message/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    pair.style.opacity = '0';
+                    pair.style.transform = 'translateX(-30px)';
+                    setTimeout(() => {
+                        pair.remove();
+                        showNotification('تم حذف الرسالة بنجاح');
+                    }, 400);
+                } else {
+                    showNotification(data.error || 'حدث خطأ أثناء الحذف', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('حدث خطأ في الاتصال', 'error');
+            });
+        });
+    }
+
+    // إضافة المستمعين للرسائل الموجودة
+    function addEventListeners() {
+        document.querySelectorAll('.message-pair').forEach(pair => {
+            addEventListenersToPair(pair);
+        });
+    }
+
+    // مسح المحادثة
+    document.getElementById('clearChatBtn').addEventListener('click', function() {
+        if (!confirm('هل تريد حذف جميع المحادثات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+        fetch('/clear_chat/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messagesArea.innerHTML = `
+                    <div class="empty-state">
+                        <div class="avatar"><i class="fas fa-robot"></i></div>
+                        <div class="message-content">
+                            <strong>مرحباً بك في عالم الذكاء الاصطناعي!</strong>
+                            <div>أنا مساعدك الذكي المتقدم، جاهز للإجابة على جميع استفساراتك بكل دقة وذكاء. لا تتردد في سؤالي عن أي موضوع يخطر ببالك.</div>
+                        </div>
+                    </div>
+                `;
+                showNotification('تم مسح المحادثة بنجاح');
+            } else {
+                showNotification(data.error || 'حدث خطأ أثناء مسح المحادثة', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('حدث خطأ في الاتصال', 'error');
+        });
+    });
+
+    // تركيز الحقل تلقائياً
+    input.focus();
+
+    // تأثيرات تفاعلية للحقل
+    input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'scale(1.02)';
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'scale(1)';
+    });
+
+    // تغيير النص التوضيحي ديناميكياً
+    const placeholders = [
+        '🔍 اكتب سؤالك هنا...',
+        '🤔 ما الذي تريد أن تعرفه؟',
+        '💡 اسألني عن أي شيء...',
+        '🚀 ابدأ محادثة ذكية...',
+        '🎯 ما هو استفسارك؟',
+        '✨ اكتشف معارف جديدة...',
+        '🌙 تحدث مع الذكاء الاصطناعي...'
+    ];
+    
+    let placeholderIndex = 0;
+    setInterval(() => {
+        if (!input.matches(':focus') && input.value === '') {
+            input.placeholder = placeholders[placeholderIndex];
+            placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+        }
+    }, 2500);
+
+    // التمرير التلقائي عند التحميل
+    window.addEventListener('load', () => {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        addEventListeners();
+        
+        // تأثير ظهور تدريجي للعناصر
+        setTimeout(() => {
+            document.querySelectorAll('.message-pair').forEach((pair, index) => {
+                setTimeout(() => {
+                    pair.style.opacity = '1';
+                    pair.style.transform = 'translateX(0)';
+                }, index * 100);
+            });
+        }, 300);
+    });
+
+    // إضافة المستمعين الأولي
+    addEventListeners();
+
+    // تأثيرات إضافية للشاشة
+    document.addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.message-box');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+</script>
+{% endblock %}

@@ -7,6 +7,14 @@ from .models import Month, Week, Day, Code, Image, Note, EnglishNote
 from datetime import date, datetime
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+import os
+import requests
+from dotenv import load_dotenv
+from .models import ChatMessage
+from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.shortcuts import render, redirect
+
 def home(request):
     months = Month.objects.all()
     return render(request, 'tracker/home.html', {'months': months})
@@ -385,3 +393,65 @@ def calendar(request):
         'events_json': json.dumps(events, ensure_ascii=False)  # مهم عشان العربي
     }
     return render(request, 'tracker/calendar.html', context)
+
+
+load_dotenv()
+
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+def chat_page(request):
+    chat_history = ChatMessage.objects.all()  # أو filter(user=request.user)
+    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        user_msg = request.POST.get("message")
+        response_text = None
+        if user_msg and API_KEY:
+            try:
+                headers = {
+                    "Authorization": f"Bearer {API_KEY}",
+                    "HTTP-Referer": "http://localhost:8000",
+                    "X-Title": "Django Chat",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": "openai/gpt-3.5-turbo",
+                    "messages": [{"role": "user", "content": user_msg}]
+                }
+                res = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                if res.status_code == 200:
+                    response_json = res.json()
+                    response_text = response_json["choices"][0]["message"]["content"]
+                    new_message = ChatMessage.objects.create(
+                        user=request.user if request.user.is_authenticated else None,
+                        question=user_msg,
+                        answer=response_text
+                    )
+                    return JsonResponse({
+                        'success': True,
+                        'question': user_msg,
+                        'answer': response_text,
+                        'id': new_message.id
+                    })
+                else:
+                    response_text = f"خطأ: {res.status_code}"
+            except Exception as e:
+                response_text = f"استثناء: {e}"
+            return JsonResponse({'success': False, 'error': response_text or "مشكلة غير معروفة"})
+    return render(request, "tracker/chat.html", {"chat_history": chat_history})
+
+@require_POST
+def delete_message(request, message_id):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            message = ChatMessage.objects.get(id=message_id)
+            message.delete()
+            return JsonResponse({'success': True})
+        except ChatMessage.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'الرسالة غير موجودة'})
+    return JsonResponse({'success': False, 'error': 'طلب غير صالح'})
+
+@require_POST
+def clear_chat(request):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        ChatMessage.objects.all().delete()  # أو filter(user=request.user)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'طلب غير صالح'})
