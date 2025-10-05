@@ -1,147 +1,399 @@
 {% extends 'tracker/base.html' %}
 {% load static %}
 
-
 {% block title %}تعديل المذكرة - {{ note.title|default:"بدون عنوان" }}{% endblock %}
 
 {% block content %}
 <!-- إضافة مكتبات Bootstrap و Font Awesome و Google Fonts -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <style>
     :root {
         --primary-color: #3b82f6;
+        --primary-glow: rgba(59, 130, 246, 0.4);
         --secondary-color: #10b981;
         --accent-color: #f59e0b;
         --danger-color: #ef4444;
         --dark-bg: #0f172a;
-        --card-bg: rgba(31, 41, 55, 0.7);
-        --border-color: rgba(255, 255, 255, 0.15);
-        --text-light: #f3f4f6;
-        --text-muted: #9ca3af;
+        --card-bg: rgba(30, 41, 59, 0.9);
+        --border-color: rgba(255, 255, 255, 0.2);
+        --text-light: #ffffff;
+        --text-bright: #f8fafc;
+        --text-muted: #cbd5e1;
     }
 
     body {
-        background: linear-gradient(135deg, #1e40af, #0f172a);
+        background: linear-gradient(135deg, #0f172a, #1e1b4b);
         font-family: 'Tajawal', sans-serif;
-        color: var(--text-light);
-        line-height: 1.6;
+        color: var(--text-bright);
         direction: rtl;
+        min-height: 100vh;
     }
 
     .glass-card {
         background: var(--card-bg);
-        border-radius: 12px;
-        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        backdrop-filter: blur(20px);
         border: 1px solid var(--border-color);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        padding: 2.5rem;
+        transition: all 0.3s ease;
     }
 
-    .form-control, .form-control:focus {
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-control {
         font-family: 'Tajawal', sans-serif;
-        font-size: 0.85rem;
-        background-color: #1e293b;
-        color: var(--text-light);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 0.4rem;
-        transition: border-color 0.3s, box-shadow 0.3s;
+        font-size: 1.1rem;
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text-bright) !important;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        transition: all 0.3s ease;
         direction: ltr;
         text-align: left;
-        unicode-bidi: embed;
     }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+    }
+
     .form-control:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 0 4px var(--primary-glow);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-bright) !important;
+    }
+
+    .form-control:hover {
+        border-color: rgba(255, 255, 255, 0.3);
     }
 
     .form-control.textarea {
-        min-height: 150px;
+        min-height: 250px;
         resize: vertical;
+        line-height: 1.6;
     }
 
     .form-label {
-        font-weight: 500;
-        color: var(--text-light);
+        font-weight: 700;
+        color: var(--text-bright);
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .form-label i {
+        color: var(--primary-color);
+        margin-left: 0.5rem;
+    }
+
+    .btn {
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 600;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: none;
+        font-size: 1.1rem;
+        position: relative;
+        overflow: hidden;
     }
 
     .btn-primary {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-        font-family: 'Tajawal', sans-serif;
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-        transition: background-color 0.3s, transform 0.2s;
+        background: linear-gradient(135deg, var(--primary-color), #2563eb);
+        color: white;
     }
+
     .btn-primary:hover {
-        background-color: #2563eb;
-        transform: translateY(-2px);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
     }
 
     .btn-secondary {
-        background-color: var(--text-muted);
-        border-color: var(--text-muted);
-        font-family: 'Tajawal', sans-serif;
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-        transition: background-color 0.3s, transform 0.2s;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-bright);
+        border: 2px solid var(--border-color);
     }
+
     .btn-secondary:hover {
-        background-color: #6b7280;
-        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert {
+        border-radius: 12px;
+        border: none;
+        font-weight: 500;
     }
 
     .alert-danger {
-        background-color: rgba(239, 68, 68, 0.2);
-        border: 1px solid var(--danger-color);
-        color: var(--text-light);
-        border-radius: 6px;
-        padding: 0.75rem 1.25rem;
-        font-family: 'Tajawal', sans-serif;
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--text-bright);
+        border-left: 4px solid var(--danger-color);
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--text-bright);
+        border-left: 4px solid var(--secondary-color);
+    }
+
+    .page-title {
+        background: linear-gradient(135deg, #3b82f6, #10b981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+    }
+
+    /* تحسينات للتفاعل */
+    .input-group {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    /* تحسينات للأجهزة المحمولة */
+    @media (max-width: 768px) {
+        .glass-card {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+        
+        .form-control {
+            padding: 0.875rem;
+            font-size: 16px;
+        }
+        
+        .btn {
+            padding: 0.875rem 1.5rem;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+    }
+
+    /* تحميل animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    /* تحسين الـ loading state */
+    .btn-loading {
+        position: relative;
+        color: transparent;
+    }
+
+    .btn-loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid transparent;
+        border-top: 2px solid #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 
 <div class="container py-5" dir="rtl">
-    <div class="text-center mb-4">
-        <h2 class="text-white fw-bold display-6">تعديل المذكرة: {{ note.title|default:"بدون عنوان" }}</h2>
+    <div class="text-center mb-5">
+        <h2 class="page-title display-5 fw-bold">تعديل المذكرة: {{ note.title|default:"بدون عنوان" }}</h2>
+        <p class="text-muted mt-3">قم بتعديل المذكرة واضغط على حفظ للتحديث</p>
     </div>
-    <div class="card glass-card p-4">
-        {% if error %}
-        <div class="alert alert-danger" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card glass-card">
+                <!-- رسائل التنبيه -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                </div>
+                {% endif %}
+
+                <!-- النموذج -->
+                <form method="POST" id="editNoteForm" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- حقل العنوان -->
+                    <div class="input-group">
+                        <label for="title" class="form-label">
+                            <i class="fas fa-heading"></i> عنوان المذكرة
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="title" 
+                               name="title" 
+                               value="{{ note.title|default:'' }}" 
+                               placeholder="أدخل عنوان مذكرتك هنا..."
+                               required
+                               autocomplete="off">
+                        <div class="invalid-feedback" style="text-align: right;">
+                            يرجى إدخال عنوان للمذكرة
+                        </div>
+                    </div>
+                    
+                    <!-- حقل المحتوى -->
+                    <div class="input-group">
+                        <label for="content" class="form-label">
+                            <i class="fas fa-sticky-note"></i> محتوى المذكرة
+                        </label>
+                        <textarea class="form-control textarea" 
+                                  id="content" 
+                                  name="content" 
+                                  placeholder="اكتب محتوى مذكرتك هنا..."
+                                  rows="8"
+                                  required>{{ note.content|default:'' }}</textarea>
+                        <div class="invalid-feedback" style="text-align: right;">
+                            يرجى إدخال محتوى للمذكرة
+                        </div>
+                    </div>
+                    
+                    <!-- الأزرار -->
+                    <div class="d-flex gap-3 mt-4 flex-wrap">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-2"></i>حفظ التعديلات
+                        </button>
+                        <a href="{% url 'content' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% endif %}
-        <form method="POST">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="title" class="form-label"><i class="fas fa-heading me-2"></i>العنوان:</label>
-                <input type="text" class="form-control" id="title" name="title" value="{{ note.title|default:'' }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="content" class="form-label"><i class="fas fa-sticky-note me-2"></i>المحتوى:</label>
-                <textarea class="form-control textarea" id="content" name="content">{{ note.content|default:'' }}</textarea>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>حفظ</button>
-                <a href="{% url 'content' %}" class="btn btn-secondary"><i class="fas fa-arrow-right me-2"></i>رجوع</a>
-            </div>
-        </form>
     </div>
 </div>
 
-<!-- تحميل Bootstrap JS مع رد احتياطي -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<!-- تحميل Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // التحقق من تحميل Bootstrap
-    if (typeof bootstrap === 'undefined') {
-        console.error('Bootstrap JS failed to load from CDN. Attempting to load local fallback.');
-        document.write('<script src="{% static "js/bootstrap.bundle.min.js" %}"><\/script>');
-    } else {
-        console.log('Bootstrap JS loaded successfully from CDN.');
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editNoteForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const titleInput = document.getElementById('title');
+        const contentInput = document.getElementById('content');
+
+        // حل مشكلة التركيز
+        function enhanceInputFocus(input) {
+            input.addEventListener('focus', function() {
+                this.style.borderColor = 'var(--primary-color)';
+                this.style.boxShadow = '0 0 0 4px var(--primary-glow)';
+            });
+
+            input.addEventListener('blur', function() {
+                this.style.borderColor = 'var(--border-color)';
+                this.style.boxShadow = 'none';
+            });
+
+            // التأكد من أن النقر يعمل
+            input.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.focus();
+            });
+        }
+
+        enhanceInputFocus(titleInput);
+        enhanceInputFocus(contentInput);
+
+        // التحقق من النموذج قبل الإرسال
+        form.addEventListener('submit', function(e) {
+            console.log('Form submission started...');
+            
+            // التحقق من الحقول المطلوبة
+            if (!titleInput.value.trim() || !contentInput.value.trim()) {
+                e.preventDefault();
+                alert('يرجى ملء جميع الحقول المطلوبة');
+                return false;
+            }
+
+            // إظهار حالة التحميل
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-loading');
+
+            // إضافة تأخير بسيط لرؤية animation التحميل
+            setTimeout(() => {
+                console.log('Form submitted successfully');
+            }, 100);
+
+            return true;
+        });
+
+        // التأكد من أن الألوان صحيحة عند الكتابة
+        titleInput.addEventListener('input', function() {
+            this.style.color = 'var(--text-bright)';
+        });
+
+        contentInput.addEventListener('input', function() {
+            this.style.color = 'var(--text-bright)';
+        });
+
+        // إضافة تأثيرات تفاعلية
+        const inputs = [titleInput, contentInput];
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = 'var(--secondary-color)';
+                } else {
+                    this.style.borderColor = 'var(--border-color)';
+                }
+            });
+        });
+
+        // التأكد من تحميل المكتبات
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap failed to load');
+        } else {
+            console.log('Bootstrap loaded successfully');
+        }
+    });
+
+    // حل إضافي لمشاكل الأجهزة المحمولة
+    function forceInputFocus(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.focus();
+                this.setSelectionRange(this.value.length, this.value.length);
+            });
+        }
     }
+
+    forceInputFocus('title');
+    forceInputFocus('content');
 </script>
 {% endblock %}
