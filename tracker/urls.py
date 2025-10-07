@@ -1,6 +1,6 @@
 from django.urls import path
-
 from . import views
+from .views import tasks_page, complete_task
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -20,5 +20,7 @@ urlpatterns = [
     path('api/add-study-day/', views.add_study_day, name='add_study_day'),
     path('api/delete-item/', views.delete_item, name='delete_item'),
     path('calendar/', views.calendar, name='calendar'),
+    path('tasks/', tasks_page, name='tasks_page'),
+    path('tasks/complete/<int:task_id>/', complete_task, name='complete_task'),
 ]
 

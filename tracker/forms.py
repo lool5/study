@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from datetime import datetime
+from .models import Task
+
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -27,3 +29,18 @@ class StudyPlanForm(forms.Form):
         widget=forms.DateInput(attrs={'type': 'date'}),
         initial=datetime(2026, 10, 1)
     )
+
+
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'due_date']
+        widgets = {
+            'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+        labels = {
+            'title': 'عنوان المهمة',
+            'description': 'وصف المهمة',
+            'due_date': 'تاريخ الانتهاء',
+        }

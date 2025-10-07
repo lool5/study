@@ -14,6 +14,12 @@ from .models import ChatMessage
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .forms import TaskForm
+from django.utils import timezone
+from .models import Task
+
 
 def home(request):
     months = Month.objects.all()
@@ -455,3 +461,28 @@ def clear_chat(request):
         ChatMessage.objects.all().delete()  # أو filter(user=request.user)
         return JsonResponse({'success': True})
     return JsonResponse({'success': False, 'error': 'طلب غير صالح'})
+
+
+
+
+
+def tasks_page(request):
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            task = form.save()  # حفظ المهمة بدون user
+            return redirect('tasks_page')
+    else:
+        form = TaskForm()
+
+    tasks = Task.objects.filter(is_completed=False).order_by('due_date')
+    completed_tasks = Task.objects.filter(is_completed=True).order_by('-completed_at')
+
+    return render(request, 'tracker/tasks.html', {'form': form, 'tasks': tasks, 'completed_tasks': completed_tasks})
+
+def complete_task(request, task_id):
+    task = Task.objects.get(id=task_id)
+    task.is_completed = True
+    task.completed_at = timezone.now()
+    task.save()
+    return redirect('tasks_page')

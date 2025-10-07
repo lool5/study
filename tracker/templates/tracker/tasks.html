@@ -1,0 +1,648 @@
+{% extends "tracker/base.html" %}
+
+{% block title %}المهام {% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --divine-gold: #f6de56;
+        --divine-silver: #C0C0C0;
+        --celestial-blue: #4A90E2;
+        --heavenly-purple: #8A2BE2;
+        --sacred-white: #FFFFFF;
+        --angelic-light: #F0F8FF;
+        --divine-dark: #0A0A2A;
+        --holy-glow: rgba(174, 156, 59, 0.7);
+        --sacred-shadow: rgba(0, 0, 0, 0.5);
+        --success-green: #00ff88;
+        --warning-orange: #3b2b0c;
+        --error-red: #ff4444;
+    }
+
+    body {
+        background: 
+            radial-gradient(ellipse at 20% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(74, 144, 226, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 40% 40%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+            linear-gradient(135deg, #0A0A2A 0%, #1A1A3A 50%, #0A0A2A 100%);
+        font-family: 'Exo 2', 'Tajawal', sans-serif;
+        color: var(--sacred-white);
+        line-height: 1.6;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* خلفية سماوية */
+    .celestial-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(74, 144, 226, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 40% 50%, rgba(138, 43, 226, 0.03) 0%, transparent 50%);
+        z-index: -3;
+    }
+
+    /* النجوم المتلألئة */
+    .twinkling-stars {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+    }
+
+    .star {
+        position: absolute;
+        background-color: white;
+        border-radius: 50%;
+        animation: twinkle 5s infinite;
+    }
+
+    @keyframes twinkle {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 1; }
+    }
+
+    /* الحاوية الرئيسية */
+    .divine-container {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    /* الهيدر السماوي */
+    .divine-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+        padding: 2rem 0;
+    }
+
+    .divine-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            transparent, 
+            var(--divine-gold), 
+            var(--celestial-blue),
+            var(--heavenly-purple),
+            transparent);
+        border-radius: 2px;
+        box-shadow: 0 0 20px var(--divine-gold);
+    }
+
+    .divine-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 3.5rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, 
+            var(--divine-gold) 0%, 
+            var(--celestial-blue) 25%, 
+            var(--heavenly-purple) 50%,
+            var(--divine-gold) 75%,
+            var(--celestial-blue) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 
+            0 0 30px rgba(255, 215, 0, 0.5),
+            0 0 60px rgba(74, 144, 226, 0.3),
+            0 0 90px rgba(138, 43, 226, 0.2);
+        margin-bottom: 1rem;
+        letter-spacing: 3px;
+        animation: divineGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes divineGlow {
+        0% { 
+            filter: hue-rotate(0deg) brightness(1);
+            transform: scale(1);
+        }
+        50% {
+            filter: hue-rotate(90deg) brightness(1.3);
+            transform: scale(1.02);
+        }
+        100% { 
+            filter: hue-rotate(180deg) brightness(1);
+            transform: scale(1);
+        }
+    }
+
+    /* البطاقات السماوية */
+    .divine-card {
+        background: rgba(16, 16, 42, 0.9);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        box-shadow: 
+            0 0 30px rgba(255, 215, 0, 0.2),
+            inset 0 0 30px rgba(255, 215, 0, 0.1),
+            0 10px 40px rgba(0, 0, 0, 0.3);
+        padding: 2.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin-bottom: 2.5rem;
+    }
+
+    .divine-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 215, 0, 0.2), 
+            transparent);
+        transition: 0.6s;
+    }
+
+    .divine-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 
+            0 0 50px rgba(255, 215, 0, 0.4),
+            inset 0 0 40px rgba(255, 215, 0, 0.2),
+            0 15px 50px rgba(0, 0, 0, 0.4);
+        border-color: var(--divine-gold);
+    }
+
+    .divine-card:hover::before {
+        left: 100%;
+    }
+
+    /* نموذج إضافة مهمة */
+    .task-form {
+        margin-bottom: 3rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--divine-gold);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 12px;
+        color: var(--sacred-white);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--divine-gold);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .divine-btn {
+        background: linear-gradient(135deg, 
+            var(--divine-gold) 0%, 
+            var(--celestial-blue) 100%);
+        border: none;
+        color: var(--divine-dark);
+        font-family: 'Orbitron', monospace;
+        font-size: 1.1rem;
+        font-weight: 800;
+        padding: 1rem 2rem;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        box-shadow: 
+            0 5px 15px rgba(255, 215, 0, 0.3),
+            inset 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .divine-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.4), 
+            transparent);
+        transition: 0.5s;
+    }
+
+    .divine-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 
+            0 8px 25px rgba(255, 215, 0, 0.5),
+            inset 0 0 15px rgba(255, 255, 255, 0.3);
+    }
+
+    .divine-btn:hover::before {
+        left: 100%;
+    }
+
+    /* عناصر المهام */
+    .tasks-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 2rem;
+        color: var(--divine-gold);
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        padding-bottom: 1rem;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent, 
+            var(--divine-gold), 
+            transparent);
+    }
+
+    .task-item {
+        background: linear-gradient(135deg, 
+            rgba(255, 215, 0, 0.1) 0%, 
+            rgba(74, 144, 226, 0.05) 100%);
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .task-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 215, 0, 0.1), 
+            transparent);
+        transition: 0.5s;
+    }
+
+    .task-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        border-color: var(--divine-gold);
+    }
+
+    .task-item:hover::before {
+        left: 100%;
+    }
+
+    .task-item.overdue {
+        border-color: var(--error-red);
+        background: linear-gradient(135deg, 
+            rgba(255, 68, 68, 0.1) 0%, 
+            rgba(255, 170, 0, 0.05) 100%);
+    }
+
+    .task-item.completed {
+        border-color: var(--success-green);
+        background: linear-gradient(135deg, 
+            rgba(0, 255, 136, 0.1) 0%, 
+            rgba(74, 144, 226, 0.05) 100%);
+    }
+
+    .task-title {
+        font-size: 1.5rem;
+        color: var(--divine-gold);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .task-description {
+        color: var(--angelic-light);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .task-due {
+        color: var(--celestial-blue);
+        font-weight: 600;
+    }
+
+    .task-timer {
+        font-family: 'Orbitron', monospace;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .task-details {
+        color: var(--angelic-light);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
+
+    .warning-text {
+        color: var(--error-red);
+        font-weight: 700;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .success-text {
+        color: var(--success-green);
+        font-weight: 700;
+    }
+
+    /* التكيف مع الشاشات */
+    @media (max-width: 768px) {
+        .divine-title {
+            font-size: 2.5rem;
+        }
+        
+        .divine-card {
+            padding: 2rem;
+        }
+        
+        .task-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .task-item {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .divine-title {
+            font-size: 2rem;
+        }
+        
+        .divine-container {
+            padding: 1rem 0;
+        }
+    }
+</style>
+
+<!-- الخلفية السماوية -->
+<div class="celestial-background"></div>
+<div class="twinkling-stars" id="starsContainer"></div>
+
+<div class="container divine-container">
+    <!-- الهيدر الرئيسي -->
+    <div class="divine-header">
+        <h1 class="divine-title">
+            <i class="fas fa-tasks"></i>
+            المهام 
+        </h1>
+    </div>
+
+    <!-- نموذج إضافة مهمة -->
+    <div class="divine-card task-form">
+        <h2 class="section-title">إضافة مهمة جديدة</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="id_title">عنوان المهمة</label>
+                <input type="text" name="title" id="id_title" class="form-input" placeholder="أدخل عنوان المهمة..." required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="id_description">وصف المهمة</label>
+                <textarea name="description" id="id_description" class="form-input" rows="3" placeholder="أدخل وصف المهمة..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="id_due_date">موعد الانتهاء</label>
+                <input type="datetime-local" name="due_date" id="id_due_date" class="form-input" required>
+            </div>
+            <button type="submit" class="divine-btn">
+                <i class="fas fa-plus"></i>
+                إضافة مهمة سماوية
+            </button>
+        </form>
+    </div>
+
+    <!-- قائمة المهام الحالية -->
+    <div class="tasks-section">
+        <h2 class="section-title">المهام الحالية</h2>
+        {% for task in tasks %}
+        <div class="divine-card task-item {% if task.is_overdue %}overdue{% endif %}">
+            <h3 class="task-title">{{ task.title }}</h3>
+            <p class="task-description">{{ task.description }}</p>
+            <div class="task-meta">
+                <span class="task-due">
+                    <i class="fas fa-clock"></i>
+                    موعد الانتهاء: {{ task.due_date|date:"Y-m-d H:i" }}
+                </span>
+                <div class="task-timer" 
+                     data-due-date="{{ task.due_date|date:'c' }}" 
+                     data-created-at="{{ task.created_at|date:'c' }}">
+                </div>
+            </div>
+            {% if task.is_overdue %}
+            <p class="task-details warning-text">
+                <i class="fas fa-exclamation-triangle"></i>
+                تحذير: مهمة متأخرة! كان المفروض تخلص قبل {{ task.due_date|date:"Y-m-d H:i" }}
+            </p>
+            {% endif %}
+            <a href="{% url 'complete_task' task.id %}">
+                <button class="divine-btn" style="margin-top: 1rem;">
+                    <i class="fas fa-check"></i>
+                    إكمال المهمة
+                </button>
+            </a>
+        </div>
+        {% empty %}
+        <div class="divine-card task-item">
+            <p class="task-description" style="text-align: center; color: var(--celestial-blue);">
+                <i class="fas fa-star" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                لا توجد مهام حالية. أضف مهمة جديدة لتبدأ!
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- قائمة المهام الغير منجزة (متأخرة) -->
+    {% if overdue_tasks %}
+    <div class="tasks-section">
+        <h2 class="section-title" style="color: var(--error-red);">
+            <i class="fas fa-exclamation-triangle"></i>
+            المهام المتأخرة
+        </h2>
+        {% for task in overdue_tasks %}
+        <div class="divine-card task-item overdue">
+            <h3 class="task-title">{{ task.title }}</h3>
+            <p class="task-description">{{ task.description }}</p>
+            <div class="task-meta">
+                <span class="task-due warning-text">
+                    <i class="fas fa-clock"></i>
+                    موعد الانتهاء: {{ task.due_date|date:"Y-m-d H:i" }} (متأخر)
+                </span>
+            </div>
+            <a href="{% url 'complete_task' task.id %}">
+                <button class="divine-btn" style="margin-top: 1rem;">
+                    <i class="fas fa-check"></i>
+                    إكمال المهمة
+                </button>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- قائمة المهام المنجزة -->
+    {% if completed_tasks %}
+    <div class="tasks-section">
+        <h2 class="section-title" style="color: var(--success-green);">
+            <i class="fas fa-trophy"></i>
+            المهام المنجزة
+        </h2>
+        {% for task in completed_tasks %}
+        <div class="divine-card task-item completed">
+            <h3 class="task-title">{{ task.title }} <i class="fas fa-check success-text"></i></h3>
+            <p class="task-description">{{ task.description }}</p>
+            <div class="task-meta">
+                <span class="task-due success-text">
+                    <i class="fas fa-calendar-check"></i>
+                    منجزة في: {{ task.completed_at|date:"Y-m-d H:i" }}
+                </span>
+            </div>
+            <div class="task-details">
+                <p class="success-text">{{ task.completion_delay }}</p>
+                <p class="success-text">{{ task.time_taken }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // إنشاء النجوم المتلألئة
+    function createStars() {
+        const starsContainer = document.getElementById('starsContainer');
+        const starCount = 150;
+        
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            const size = Math.random() * 3;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+            
+            starsContainer.appendChild(star);
+        }
+    }
+
+    // دالة الـ timer لكل مهمة
+    document.querySelectorAll('.task-timer').forEach(timer => {
+        const dueDate = new Date(timer.dataset.dueDate);
+        const createdAt = new Date(timer.dataset.createdAt);
+        const totalDuration = dueDate - createdAt;
+
+        function updateTimer() {
+            const now = new Date();
+            const timeLeft = dueDate - now;
+
+            if (timeLeft <= 0) {
+                timer.textContent = "⏰ متأخر!";
+                timer.style.color = '#ff4444';
+                timer.style.background = 'rgba(255, 68, 68, 0.2)';
+                return;
+            }
+
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            timer.textContent = `⏳ ${days}ي ${hours}س ${minutes}د ${seconds}ث`;
+
+            // تغيير اللون بناءً على النسبة المتبقية
+            const remainingRatio = timeLeft / totalDuration;
+            let color, background;
+            if (remainingRatio > 0.5) {
+                color = '#00ff88';
+                background = 'rgba(0, 255, 136, 0.2)';
+            } else if (remainingRatio > 0.2) {
+                color = '#ffaa00';
+                background = 'rgba(255, 170, 0, 0.2)';
+            } else {
+                color = '#ff4444';
+                background = 'rgba(255, 68, 68, 0.2)';
+            }
+            timer.style.color = color;
+            timer.style.background = background;
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+
+    // بدء التأثيرات
+    document.addEventListener('DOMContentLoaded', function() {
+        createStars();
+    });
+</script>
+{% endblock %}
