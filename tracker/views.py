@@ -470,15 +470,21 @@ def tasks_page(request):
     if request.method == 'POST':
         form = TaskForm(request.POST)
         if form.is_valid():
-            task = form.save()  # حفظ المهمة بدون user
+            task = form.save()
             return redirect('tasks_page')
     else:
         form = TaskForm()
 
-    tasks = Task.objects.filter(is_completed=False).order_by('due_date')
+    tasks = Task.objects.filter(is_completed=False, due_date__gte=timezone.now()).order_by('due_date')
+    overdue_tasks = Task.objects.filter(is_completed=False, due_date__lt=timezone.now()).order_by('due_date')
     completed_tasks = Task.objects.filter(is_completed=True).order_by('-completed_at')
 
-    return render(request, 'tracker/tasks.html', {'form': form, 'tasks': tasks, 'completed_tasks': completed_tasks})
+    return render(request, 'tracker/tasks.html', {
+        'form': form,
+        'tasks': tasks,
+        'overdue_tasks': overdue_tasks,
+        'completed_tasks': completed_tasks
+    })
 
 def complete_task(request, task_id):
     task = Task.objects.get(id=task_id)
@@ -486,3 +492,31 @@ def complete_task(request, task_id):
     task.completed_at = timezone.now()
     task.save()
     return redirect('tasks_page')
+
+def edit_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.is_completed:
+        return redirect('tasks_page')
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            return redirect('tasks_page')
+    else:
+        form = TaskForm(instance=task)
+    return render(request, 'tracker/edit_task.html', {'form': form, 'task': task})
+
+def delete_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.is_completed:
+        return redirect('tasks_page')
+    if request.method == 'POST':
+        task.delete()
+        return redirect('tasks_page')
+    return redirect('tasks_page')
+
+
+
+
+
+

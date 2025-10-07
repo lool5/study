@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import tasks_page, complete_task
+from .views import tasks_page, complete_task, edit_task, delete_task
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -22,5 +22,7 @@ urlpatterns = [
     path('calendar/', views.calendar, name='calendar'),
     path('tasks/', tasks_page, name='tasks_page'),
     path('tasks/complete/<int:task_id>/', complete_task, name='complete_task'),
+    path('tasks/delete/<int:task_id>/', delete_task, name='delete_task'),
+    path('tasks/edit/<int:task_id>/', edit_task, name='edit_task'),
 ]
 

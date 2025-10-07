@@ -1,6 +1,6 @@
 {% extends "tracker/base.html" %}
 
-{% block title %}المهام {% endblock %}
+{% block title %}المهام{% endblock %}
 
 {% block content %}
 <style>
@@ -35,7 +35,6 @@
         padding: 0;
     }
 
-    /* خلفية سماوية */
     .celestial-background {
         position: fixed;
         top: 0;
@@ -49,7 +48,6 @@
         z-index: -3;
     }
 
-    /* النجوم المتلألئة */
     .twinkling-stars {
         position: fixed;
         top: 0;
@@ -71,7 +69,6 @@
         50% { opacity: 1; }
     }
 
-    /* الحاوية الرئيسية */
     .divine-container {
         position: relative;
         z-index: 1;
@@ -79,7 +76,6 @@
         padding: 2rem 0;
     }
 
-    /* الهيدر السماوي */
     .divine-header {
         text-align: center;
         margin-bottom: 3rem;
@@ -141,7 +137,6 @@
         }
     }
 
-    /* البطاقات السماوية */
     .divine-card {
         background: rgba(16, 16, 42, 0.9);
         backdrop-filter: blur(20px);
@@ -185,7 +180,6 @@
         left: 100%;
     }
 
-    /* نموذج إضافة مهمة */
     .task-form {
         margin-bottom: 3rem;
     }
@@ -240,6 +234,11 @@
         box-shadow: 
             0 5px 15px rgba(255, 215, 0, 0.3),
             inset 0 0 10px rgba(255, 255, 255, 0.2);
+        margin-right: 0.5rem;
+    }
+
+    .divine-btn.delete-btn {
+        background: linear-gradient(135deg, var(--error-red) 0%, var(--warning-orange) 100%);
     }
 
     .divine-btn::before {
@@ -263,11 +262,16 @@
             inset 0 0 15px rgba(255, 255, 255, 0.3);
     }
 
+    .divine-btn.delete-btn:hover {
+        box-shadow: 
+            0 8px 25px rgba(255, 68, 68, 0.5),
+            inset 0 0 15px rgba(255, 255, 255, 0.3);
+    }
+
     .divine-btn:hover::before {
         left: 100%;
     }
 
-    /* عناصر المهام */
     .tasks-section {
         margin-bottom: 3rem;
     }
@@ -408,7 +412,6 @@
         font-weight: 700;
     }
 
-    /* التكيف مع الشاشات */
     @media (max-width: 768px) {
         .divine-title {
             font-size: 2.5rem;
@@ -439,12 +442,10 @@
     }
 </style>
 
-<!-- الخلفية السماوية -->
 <div class="celestial-background"></div>
 <div class="twinkling-stars" id="starsContainer"></div>
 
 <div class="container divine-container">
-    <!-- الهيدر الرئيسي -->
     <div class="divine-header">
         <h1 class="divine-title">
             <i class="fas fa-tasks"></i>
@@ -452,7 +453,6 @@
         </h1>
     </div>
 
-    <!-- نموذج إضافة مهمة -->
     <div class="divine-card task-form">
         <h2 class="section-title">إضافة مهمة جديدة</h2>
         <form method="post">
@@ -476,7 +476,6 @@
         </form>
     </div>
 
-    <!-- قائمة المهام الحالية -->
     <div class="tasks-section">
         <h2 class="section-title">المهام الحالية</h2>
         {% for task in tasks %}
@@ -499,12 +498,27 @@
                 تحذير: مهمة متأخرة! كان المفروض تخلص قبل {{ task.due_date|date:"Y-m-d H:i" }}
             </p>
             {% endif %}
-            <a href="{% url 'complete_task' task.id %}">
-                <button class="divine-btn" style="margin-top: 1rem;">
-                    <i class="fas fa-check"></i>
-                    إكمال المهمة
-                </button>
-            </a>
+            <div class="task-actions" style="margin-top: 1rem;">
+                <a href="{% url 'complete_task' task.id %}">
+                    <button class="divine-btn">
+                        <i class="fas fa-check"></i>
+                        إكمال
+                    </button>
+                </a>
+                <a href="{% url 'edit_task' task.id %}">
+                    <button class="divine-btn">
+                        <i class="fas fa-edit"></i>
+                        تعديل
+                    </button>
+                </a>
+                <form method="post" action="{% url 'delete_task' task.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف المهمة؟');">
+                    {% csrf_token %}
+                    <button type="submit" class="divine-btn delete-btn">
+                        <i class="fas fa-trash"></i>
+                        حذف
+                    </button>
+                </form>
+            </div>
         </div>
         {% empty %}
         <div class="divine-card task-item">
@@ -516,7 +530,6 @@
         {% endfor %}
     </div>
 
-    <!-- قائمة المهام الغير منجزة (متأخرة) -->
     {% if overdue_tasks %}
     <div class="tasks-section">
         <h2 class="section-title" style="color: var(--error-red);">
@@ -533,18 +546,32 @@
                     موعد الانتهاء: {{ task.due_date|date:"Y-m-d H:i" }} (متأخر)
                 </span>
             </div>
-            <a href="{% url 'complete_task' task.id %}">
-                <button class="divine-btn" style="margin-top: 1rem;">
-                    <i class="fas fa-check"></i>
-                    إكمال المهمة
-                </button>
-            </a>
+            <div class="task-actions" style="margin-top: 1rem;">
+                <a href="{% url 'complete_task' task.id %}">
+                    <button class="divine-btn">
+                        <i class="fas fa-check"></i>
+                        إكمال
+                    </button>
+                </a>
+                <a href="{% url 'edit_task' task.id %}">
+                    <button class="divine-btn">
+                        <i class="fas fa-edit"></i>
+                        تعديل
+                    </button>
+                </a>
+                <form method="post" action="{% url 'delete_task' task.id %}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف المهمة؟');">
+                    {% csrf_token %}
+                    <button type="submit" class="divine-btn delete-btn">
+                        <i class="fas fa-trash"></i>
+                        حذف
+                    </button>
+                </form>
+            </div>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- قائمة المهام المنجزة -->
     {% if completed_tasks %}
     <div class="tasks-section">
         <h2 class="section-title" style="color: var(--success-green);">
@@ -572,7 +599,6 @@
 </div>
 
 <script>
-    // إنشاء النجوم المتلألئة
     function createStars() {
         const starsContainer = document.getElementById('starsContainer');
         const starCount = 150;
@@ -595,7 +621,6 @@
         }
     }
 
-    // دالة الـ timer لكل مهمة
     document.querySelectorAll('.task-timer').forEach(timer => {
         const dueDate = new Date(timer.dataset.dueDate);
         const createdAt = new Date(timer.dataset.createdAt);
@@ -619,7 +644,6 @@
 
             timer.textContent = `⏳ ${days}ي ${hours}س ${minutes}د ${seconds}ث`;
 
-            // تغيير اللون بناءً على النسبة المتبقية
             const remainingRatio = timeLeft / totalDuration;
             let color, background;
             if (remainingRatio > 0.5) {
@@ -640,7 +664,6 @@
         setInterval(updateTimer, 1000);
     });
 
-    // بدء التأثيرات
     document.addEventListener('DOMContentLoaded', function() {
         createStars();
     });
